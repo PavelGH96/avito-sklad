@@ -2,7 +2,9 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="format-detection" content="telephone=no">
 <title>Склад Авито · товары для сна</title>
 <meta name="theme-color" content="#232A4A">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -26,7 +28,7 @@ html,body{margin:0;background:var(--bg);color:var(--ink);font-family:Manrope,sys
 button,input,select,textarea{font:inherit;color:inherit}
 a{color:var(--accent)}
 .top{background:var(--night);color:#fff;position:sticky;top:0;z-index:20}
-.top-in{max-width:1180px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;gap:18px}
+.top-in{margin:0 auto;padding:14px 28px;display:flex;align-items:center;gap:18px}
 .brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:17px;letter-spacing:-.01em;white-space:nowrap}
 .brand small{display:block;font-weight:500;font-size:12px;color:#B9BEDA;letter-spacing:0}
 .moon{width:30px;height:30px;border-radius:50%;background:var(--moon);box-shadow:inset -8px -3px 0 0 #D29A22;flex:none}
@@ -36,10 +38,9 @@ a{color:var(--accent)}
 .tab.on{background:#fff;color:var(--night)}
 .tab .cnt{font-size:12px;background:rgba(255,255,255,.16);padding:1px 7px;border-radius:20px}
 .tab.on .cnt{background:var(--accentSoft);color:var(--accent)}
-.banner{max-width:1180px;margin:12px auto 0;padding:10px 14px;border-radius:10px;background:var(--warnSoft);color:#7A4F0E;font-size:13.5px;display:none}
-.banner.show{display:block;margin-left:20px;margin-right:20px}
-@media(min-width:1220px){.banner.show{margin-left:auto;margin-right:auto}}
-main{max-width:1180px;margin:0 auto;padding:20px 20px 110px}
+.banner{margin:12px 28px 0;padding:10px 14px;border-radius:10px;background:var(--warnSoft);color:#7A4F0E;font-size:13.5px;display:none}
+.banner.show{display:block}
+main{margin:0 auto;padding:22px 28px 60px}
 .bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
 .bar h1{font-size:22px;margin:0 auto 0 0;letter-spacing:-.02em}
 .search{flex:1 1 220px;max-width:340px;position:relative}
@@ -104,6 +105,7 @@ textarea.inp{min-height:70px;resize:vertical}
 .st-new{background:var(--blueSoft);color:var(--blue)}
 .st-talk{background:var(--accentSoft);color:var(--accent)}
 .st-reserve{background:var(--warnSoft);color:var(--warn)}
+.st-ship{background:#FDE8D4;color:#B4530F}
 .st-sold{background:var(--okSoft);color:var(--ok)}
 .st-cancel{background:#EEEDEA;color:var(--ink3)}
 @media(max-width:760px){
@@ -158,7 +160,6 @@ textarea.inp{min-height:70px;resize:vertical}
   .bnav svg{width:22px;height:22px}
   main{padding:16px 14px 96px}
   .top-in{padding:12px 14px}
-  .bar h1{font-size:19px;width:100%}
   .search{max-width:none}
 }
 
@@ -190,7 +191,7 @@ textarea.inp{min-height:70px;resize:vertical}
 .loading{padding:60px;text-align:center;color:var(--ink3)}
 .userbtn{background:var(--night2);border:0;color:#fff;width:36px;height:36px;border-radius:50%;font-weight:800;cursor:pointer;flex:none;margin-left:8px}
 @media(max-width:760px){.userbtn{margin-left:auto}}
-.auth{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:radial-gradient(circle at 70% 20%,#3A4280 0,var(--night) 55%)}
+.auth{position:fixed;inset:0;z-index:40;overflow-y:auto;min-height:100vh;min-height:100dvh;padding-top:calc(20px + env(safe-area-inset-top));display:flex;align-items:center;justify-content:center;padding:20px;background:radial-gradient(circle at 70% 20%,#3A4280 0,var(--night) 55%)}
 .auth-c{background:#fff;border-radius:20px;padding:28px 24px;width:100%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
 .auth-c h1{margin:14px 0 4px;font-size:22px;letter-spacing:-.02em}
 .auth-c p{margin:0 0 18px;color:var(--ink2);font-size:14px}
@@ -209,6 +210,59 @@ a.shb.none{--c:#9096A6;opacity:.7}
 .lst .nm{grid-column:1/-1;margin-bottom:-2px}
 .shoprow{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid #F0EEE9}
 .shoprow input[type=color]{width:28px;height:28px;border:0;padding:0;background:none;cursor:pointer}
+
+/* ---------- wide screens ---------- */
+@media(min-width:1400px){ .grid{grid-template-columns:repeat(auto-fill,minmax(270px,1fr))} .dl{grid-template-columns:minmax(0,1.6fr) minmax(0,1.4fr) auto} }
+
+/* ---------- iPhone / mobile ---------- */
+html{-webkit-text-size-adjust:100%;background:var(--night)}
+body{min-height:100vh;min-height:100dvh}
+button,a,select,label{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.top{padding-top:env(safe-area-inset-top)}
+.top-in{padding-left:max(28px,env(safe-area-inset-left));padding-right:max(28px,env(safe-area-inset-right))}
+@media(max-width:760px){
+  .top-in{padding:10px max(14px,env(safe-area-inset-left)) 10px max(14px,env(safe-area-inset-right))}
+  main{padding:14px max(12px,env(safe-area-inset-left)) calc(88px + env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-right))}
+  .banner{margin:10px 12px 0}
+  input,select,textarea,.inp,.search input{font-size:16px !important}   /* no auto-zoom on iOS */
+  .bar{gap:8px;margin-bottom:12px}
+  .bar h1{font-size:24px;width:auto;flex:1}
+  .bar .btn.pri{padding:10px 14px}
+  .search{order:3;flex:1 1 100%}
+  .chips{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;margin:0 -12px 12px;padding:0 12px}
+  .chips::-webkit-scrollbar{display:none}
+  .chip{flex:none;padding:8px 13px}
+  .grid{grid-template-columns:1fr;gap:10px}
+  .pc{flex-direction:row}
+  .pc-img{aspect-ratio:auto;width:104px;flex:none}
+  .pc-img .ico{font-size:34px}
+  .pc-tag{display:none}
+  .pc-st{top:auto;bottom:8px;left:8px;right:8px;text-align:center;font-size:10.5px;padding:2px 4px}
+  .pc-b{padding:11px 12px;gap:7px}
+  .pc-price b{font-size:17px}
+  .stock div{padding:4px 6px}.stock b{font-size:15px}
+  .pc-act .btn{padding:9px 8px}
+  .dl{padding:13px 14px;gap:9px}
+  .lk{padding:7px 10px;font-size:13.5px}
+  .st{padding:7px 12px;font-size:13px}
+  .kpis{grid-template-columns:1fr 1fr;gap:10px}
+  .kpi{padding:12px 13px}.kpi b{font-size:19px}
+  .tbl th,.tbl td{padding:10px}
+  /* modals become bottom sheets */
+  .ov{align-items:flex-end;padding:0}
+  .md{border-radius:20px 20px 0 0;max-height:92vh;max-height:92dvh;display:flex;flex-direction:column;animation:sheet .22s ease-out}
+  .md.sm{max-width:none}
+  .md-h{padding:16px 16px 4px;position:relative}
+  .md-h::before{content:'';position:absolute;top:7px;left:50%;width:38px;height:5px;margin-left:-19px;border-radius:3px;background:#DDD9D0}
+  .md-b{overflow-y:auto;-webkit-overflow-scrolling:touch;padding:8px 16px;flex:1}
+  .md-f{padding:10px 16px calc(12px + env(safe-area-inset-bottom));border-top:1px solid #F0EEE9}
+  .md-f .btn{flex:1;justify-content:center;padding:12px}
+  .md-f .left{flex:none}
+  .toast{bottom:calc(84px + env(safe-area-inset-bottom))}
+  .auth-c{border-radius:22px}
+}
+@keyframes sheet{from{transform:translateY(40px);opacity:.4}to{transform:none;opacity:1}}
+@media(max-width:380px){ .kpis{grid-template-columns:1fr} .pc-img{width:84px} }
 </style>
 </head>
 <body>
@@ -239,7 +293,7 @@ const CATS = [
 ];
 const PSTAT = {active:{n:'В продаже',c:'st-sold'}, draft:{n:'Не выложен',c:'st-new'}, off:{n:'Снят',c:'st-cancel'}};
 const DSTAT = [
-  {id:'new', n:'Новый'}, {id:'talk', n:'Переговоры'}, {id:'reserve', n:'Резерв'},
+  {id:'new', n:'Новый'}, {id:'talk', n:'Переговоры'}, {id:'reserve', n:'Резерв'}, {id:'ship', n:'Ждёт отправки'},
   {id:'sold', n:'Продано'}, {id:'cancel', n:'Отмена'}
 ];
 const DELIV = ['Самовывоз','Авито Доставка','Курьер / своя доставка','Транспортная компания'];
@@ -275,7 +329,7 @@ function priceFor(p, shopId){ const l=listingOf(p,shopId); return num(l.price) |
 function stockOf(p){
   let sold=0, reserved=0;
   for(const d of S.deals){ if(d.productId!==p.id) continue;
-    if(d.status==='sold') sold+=num(d.qty); else if(d.status==='reserve') reserved+=num(d.qty); }
+    if(d.status==='sold') sold+=num(d.qty); else if(d.status==='reserve'||d.status==='ship') reserved+=num(d.qty); }
   const received = num(p.received);
   return {received, sold, reserved, available: received - sold - reserved};
 }
@@ -362,7 +416,7 @@ window.addEventListener('online', ()=>{ if(me && sb){ banner(''); loadAll().then
 let authMode='in';
 function showAuth(msg){
   document.querySelector('.top').style.display='none'; $('#bnav').style.display='none'; banner('');
-  $('#main').innerHTML = `<div class="auth" style="margin:-20px -20px -110px"><form class="auth-c" onsubmit="event.preventDefault();doAuth()">
+  $('#main').innerHTML = `<div class="auth"><form class="auth-c" onsubmit="event.preventDefault();doAuth()">
     <div class="moon"></div><h1>Склад Авито</h1><p>${authMode==='in'?'Войдите, чтобы открыть склад':'Создайте аккаунт — потом владелец склада добавит ваш email'}</p>
     <div class="fl"><label>Email</label><input class="inp" id="a_email" type="email" autocomplete="email" required autofocus></div>
     <div class="fl"><label>Пароль</label><input class="inp" id="a_pass" type="password" autocomplete="${authMode==='in'?'current-password':'new-password'}" minlength="6" required></div>
@@ -388,7 +442,7 @@ async function resetPass(){
 function showNoAccess(){
   S.products=[]; S.deals=[];
   document.querySelector('.top').style.display='none'; $('#bnav').style.display='none';
-  $('#main').innerHTML = `<div class="auth" style="margin:-20px -20px -110px"><div class="auth-c"><div class="moon"></div><h1>Нет доступа</h1>
+  $('#main').innerHTML = `<div class="auth"><div class="auth-c"><div class="moon"></div><h1>Нет доступа</h1>
     <p>Аккаунт <b>${esc(me.email)}</b> пока не добавлен на склад. Попросите владельца добавить этот email в разделе «Доступ».</p>
     <button class="btn" onclick="logout()">Выйти</button></div></div>`;
 }
@@ -455,7 +509,7 @@ const ICONS = {
 const VIEWS = [['products','Товары'],['deals','Сделки'],['buyers','Покупатели'],['summary','Сводка']];
 function go(v){ S.view=v; if(v!=='deals') S.buyerFilter=null; try{ history.replaceState(null,'','#'+v);}catch(e){ location.hash=v; } render(); window.scrollTo(0,0); }
 function renderNav(){
-  const cnt = {products:S.products.length, deals:S.deals.filter(d=>['new','talk','reserve'].includes(d.status)).length};
+  const cnt = {products:S.products.length, deals:S.deals.filter(d=>['new','talk','reserve','ship'].includes(d.status)).length};
   $('#tabs').innerHTML = VIEWS.map(([k,n])=>`<button class="tab ${S.view===k?'on':''}" onclick="go('${k}')">${n}${cnt[k]?`<span class="cnt">${cnt[k]}</span>`:''}</button>`).join('');
   $('#bnav').innerHTML = VIEWS.map(([k,n])=>`<button class="${S.view===k?'on':''}" onclick="go('${k}')">${ICONS[k]}${n}</button>`).join('');
 }
@@ -531,8 +585,8 @@ function vDeals(){
   const shopBase = list;
   if(S.shop!=='all') list = list.filter(d=>d.shopId===S.shop);
   const counts = Object.fromEntries(DSTAT.map(s=>[s.id, list.filter(d=>d.status===s.id).length]));
-  const active = list.filter(d=>['new','talk','reserve'].includes(d.status)).length;
-  if(S.dstat==='active') list = list.filter(d=>['new','talk','reserve'].includes(d.status));
+  const active = list.filter(d=>['new','talk','reserve','ship'].includes(d.status)).length;
+  if(S.dstat==='active') list = list.filter(d=>['new','talk','reserve','ship'].includes(d.status));
   else if(S.dstat!=='all') list = list.filter(d=>d.status===S.dstat);
   if(q) list = list.filter(d=>[d.buyer,d.phone,d.note,pm[d.productId]?.name].join(' ').toLowerCase().includes(q));
   list.sort((a,b)=> String(b.date||'').localeCompare(String(a.date||'')) || (b.created||0)-(a.created||0));
@@ -607,7 +661,7 @@ function vSummary(){
   for(const d of sold){ const q=num(d.qty); rev+=q*num(d.price); cost+=q*num(d.cost ?? pm[d.productId]?.cost); soldUnits+=q; }
   const extra = sold.reduce((a,d)=>a+num(d.expense),0);
   const profit = rev-cost-extra;
-  const inWork = S.deals.filter(d=>['new','talk','reserve'].includes(d.status));
+  const inWork = S.deals.filter(d=>['new','talk','reserve','ship'].includes(d.status));
   const pipe = inWork.reduce((a,d)=>a+num(d.qty)*num(d.price),0);
   const closed = S.deals.filter(d=>d.status==='sold'||d.status==='cancel').length;
   const conv = closed ? Math.round(sold.length/closed*100) : 0;
@@ -643,7 +697,7 @@ function vSummary(){
     ${S.shops.length ? `<div class="panel"><h3>По магазинам</h3><div class="rows">${[...shopsSorted().map(sh=>sh.id), ...(S.deals.some(d=>!d.shopId||!shopOf(d.shopId))?['']:[])].map(id=>{
       const ds=S.deals.filter(d=> id ? d.shopId===id : (!d.shopId||!shopOf(d.shopId)));
       const so=ds.filter(d=>d.status==='sold'); const r=so.reduce((a,d)=>a+num(d.qty)*num(d.price),0);
-      const w=ds.filter(d=>['new','talk','reserve'].includes(d.status)).length;
+      const w=ds.filter(d=>['new','talk','reserve','ship'].includes(d.status)).length;
       return `<div class="rw"><span>${id?shopBadge(id):'<span style="color:var(--ink3)">Без магазина</span>'} <span style="color:var(--ink3);font-size:12.5px">${so.reduce((a,d)=>a+num(d.qty),0)} шт · в работе ${w}</span></span><span>${rub(r)}</span></div>`; }).join('')}</div></div>` : ''}
     <div class="panel"><h3>Сделки по статусам</h3>
       <div class="rows">${DSTAT.map(s=>{ const ds=S.deals.filter(d=>d.status===s.id); return `<div class="rw"><span><span class="st st-${s.id}" style="cursor:default">${s.n}</span></span><span>${ds.length} · ${rub(ds.reduce((a,d)=>a+num(d.qty)*num(d.price),0))}</span></div>`; }).join('')}</div>
@@ -812,11 +866,11 @@ function editDeal(id, productId){
 }
 function dealProdChanged(){ const p=S.products.find(x=>x.id===val('d_prod')); if(p){ const pr=priceFor(p, val('d_shop')); if(pr) $('#d_price').value = pr; } }
 function canTake(productId, qty, status, exceptId){
-  if(!['reserve','sold'].includes(status)) return true;
+  if(!['reserve','ship','sold'].includes(status)) return true;
   const p = S.products.find(x=>x.id===productId); if(!p) return true;
   const s = stockOf(p);
   const prev = S.deals.find(x=>x.id===exceptId);
-  const back = prev && prev.productId===productId && ['reserve','sold'].includes(prev.status) ? num(prev.qty) : 0;
+  const back = prev && prev.productId===productId && ['reserve','ship','sold'].includes(prev.status) ? num(prev.qty) : 0;
   return qty <= s.available + back;
 }
 async function saveDeal(id){
