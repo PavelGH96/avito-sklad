@@ -1048,7 +1048,15 @@ function delDeal(id){ confirmBox('Удалить сделку? Товар вер
 (function(){ const h=(location.hash||'').slice(1); if(VIEWS.some(v=>v[0]===h)) S.view=h; })();
 window.addEventListener('hashchange', ()=>{ const h=location.hash.slice(1); if(VIEWS.some(v=>v[0]===h) && h!==S.view){ S.view=h; render(); } });
 init();
-if('serviceWorker' in navigator && location.protocol==='https:') navigator.serviceWorker.register('sw.js').catch(()=>{});
+if('serviceWorker' in navigator && location.protocol==='https:'){
+  const hadCtl = !!navigator.serviceWorker.controller; let reloaded=false;
+  navigator.serviceWorker.addEventListener('controllerchange', ()=>{ if(hadCtl && !reloaded){ reloaded=true; location.reload(); } });
+  navigator.serviceWorker.register('sw.js', {updateViaCache:'none'}).then(reg=>{
+    const check=()=>reg.update().catch(()=>{});
+    document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='visible') check(); });
+    setInterval(check, 5*60*1000);
+  }).catch(()=>{});
+}
 </script>
 </body>
 </html>
