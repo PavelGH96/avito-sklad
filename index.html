@@ -42,24 +42,49 @@ a{color:var(--accent)}
 .banner.show{display:block}
 main{margin:0 auto;padding:22px 28px 60px}
 @media(min-width:761px){
-  body{padding-left:248px}
-  .top{position:fixed;top:0;left:0;bottom:0;width:248px;padding-top:0;overflow-y:auto}
-  .top-in{flex-direction:column;align-items:stretch;gap:6px;height:100%;padding:22px 14px 16px !important}
-  .brand{padding:0 8px 22px;font-size:19px}
-  .brand .moon{width:36px;height:36px}
-  .tabs{flex-direction:column;margin:0;gap:4px}
-  .tab{padding:13px 14px;font-size:16.5px;font-weight:700;gap:12px;border-radius:12px;width:100%;text-align:left}
+  /* --- sidebar: expanded (side) and collapsed (mini) --- */
+  body.nav-side{padding-left:248px}
+  body.nav-mini{padding-left:78px}
+  body.nav-side .top, body.nav-mini .top{position:fixed;top:0;left:0;bottom:0;width:248px;padding-top:0;overflow-y:auto;overflow-x:hidden;transition:width .18s}
+  body.nav-mini .top{width:78px}
+  body.nav-side .top-in, body.nav-mini .top-in{flex-direction:column;align-items:stretch;gap:6px;height:100%;padding:22px 14px 16px !important}
+  body.nav-side .brand, body.nav-mini .brand{padding:0 8px 22px;font-size:19px}
+  body.nav-side .brand .moon, body.nav-mini .brand .moon{width:36px;height:36px}
+  body.nav-side .tabs, body.nav-mini .tabs{flex-direction:column;margin:0;gap:4px}
+  body.nav-side .tab, body.nav-mini .tab{padding:13px 14px;font-size:16.5px;font-weight:700;gap:12px;border-radius:12px;width:100%;text-align:left;position:relative}
   .tab .ti{display:flex;width:22px;height:22px;flex:none;opacity:.85}
   .tab .ti svg{width:22px;height:22px}
-  .tab .tn{flex:1}
-  .tab .cnt{font-size:12.5px;padding:2px 9px}
-  .top .userbtn{margin:auto 0 0 !important;width:100%;height:auto;border-radius:12px;display:flex;align-items:center;gap:10px;padding:10px;text-align:left;background:rgba(255,255,255,.06)}
-  .top .userbtn:hover{background:var(--night2)}
+  body.nav-side .tab .tn{flex:1}
+  body.nav-side .tab .cnt{font-size:12.5px;padding:2px 9px}
+  body.nav-side .top .userbtn, body.nav-mini .top .userbtn{margin:0 !important;width:100%;height:auto;border-radius:12px;display:flex;align-items:center;gap:10px;padding:10px;text-align:left;background:rgba(255,255,255,.06)}
+  body.nav-side .top .userbtn:hover, body.nav-mini .top .userbtn:hover{background:var(--night2)}
   .userbtn .ut{display:flex;flex-direction:column;min-width:0}
   .userbtn .ut b{font-size:14px}
   .userbtn .ut small{font-size:11.5px;color:#B9BEDA;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  body.nav-side .navctl, body.nav-mini .navctl{margin-top:auto;display:flex;gap:6px;padding:0 0 6px}
+  /* mini specifics */
+  body.nav-mini .brand{padding:0 3px 22px}
+  body.nav-mini .brand > div:last-child, body.nav-mini .tab .tn, body.nav-mini .userbtn .ut{display:none}
+  body.nav-mini .tab{justify-content:center;padding:13px 0}
+  body.nav-mini .tab .cnt{position:absolute;top:4px;right:4px;font-size:10px;padding:0 5px;line-height:16px;background:var(--accent);color:#fff}
+  body.nav-mini .top .userbtn{justify-content:center;padding:8px 0}
+  body.nav-mini .navctl{flex-direction:column;align-items:center}
+  /* --- top header --- */
+  body.nav-top .top{position:sticky;top:0}
+  body.nav-top .top-in{padding:12px 28px !important;gap:14px}
+  body.nav-top .tabs{margin-left:28px;gap:6px}
+  body.nav-top .tab{padding:10px 16px;font-size:16px;font-weight:700;gap:9px;border-radius:11px}
+  body.nav-top .navctl{margin-left:auto;display:flex;gap:6px}
+  body.nav-top .top .userbtn{margin-left:4px;width:auto;height:auto;background:none;padding:0}
+  body.nav-top .userbtn .ut{display:none}
   main .bar h1{font-size:30px;letter-spacing:-.025em}
 }
+.navctl{display:none}
+.navctl button{background:rgba(255,255,255,.07);border:0;color:#C9CDE6;width:38px;height:34px;border-radius:9px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.navctl button:hover{background:var(--night2);color:#fff}
+.navctl button.on{background:rgba(255,255,255,.18);color:#fff}
+.navctl svg{width:18px;height:18px}
+@media(max-width:760px){.navctl{display:none !important}}
 .userbtn .av{width:36px;height:36px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:800;flex:none;color:#fff}
 @media(max-width:760px){ .userbtn .ut{display:none} .userbtn{background:none !important;width:auto !important;height:auto !important;padding:0} }
 .bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
@@ -418,6 +443,7 @@ button,a,select,label{-webkit-tap-highlight-color:transparent;touch-action:manip
   <div class="top-in">
     <div class="brand"><div class="moon"></div><div>Склад Авито<span class="sync off" id="syncdot" title="Синхронизация"></span><small>товары для сна · <span id="appver">v</span></small></div></div>
     <nav class="tabs" id="tabs"></nav>
+    <div class="navctl" id="navctl"></div>
     <button class="userbtn" id="userbtn" onclick="accountModal()" title="Аккаунт и доступ" style="display:none"></button>
   </div>
 </header>
@@ -430,7 +456,7 @@ button,a,select,label{-webkit-tap-highlight-color:transparent;touch-action:manip
 
 <script>
 /* ---------- constants ---------- */
-const APP_VERSION = '2.5';   // keep in sync with version.json
+const APP_VERSION = '2.6';   // keep in sync with version.json
 const APP_DATE = '21.11.2026';
 const CATS = [
   {id:'mattress', name:'Матрас', ico:'🛏️'},
@@ -662,9 +688,25 @@ const ICONS = {
 };
 const VIEWS = [['products','Товары'],['deals','Сделки'],['buyers','Покупатели'],['summary','Сводка']];
 function go(v){ S.view=v; if(v!=='deals') S.buyerFilter=null; try{ history.replaceState(null,'','#'+v);}catch(e){ location.hash=v; } render(); window.scrollTo(0,0); }
+const NAVI = {
+  side:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></svg>',
+  mini:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 17l-5-5 5-5M18 17l-5-5 5-5"/></svg>',
+  expand:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M13 17l5-5-5-5M6 17l5-5-5-5"/></svg>',
+  top:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/></svg>',
+};
+S.nav = LSV('sklad-nav','side');
+function setNav(m){ S.nav=m; try{ localStorage.setItem('sklad-nav',m); }catch(e){} applyNav(); }
+function applyNav(){
+  document.body.classList.remove('nav-side','nav-mini','nav-top');
+  document.body.classList.add('nav-'+S.nav);
+  const c=$('#navctl'); if(!c) return;
+  c.innerHTML = S.nav==='top'
+    ? `<button onclick="setNav('side')" title="Меню слева">${NAVI.side}</button>`
+    : `${S.nav==='side'?`<button onclick="setNav('mini')" title="Свернуть до иконок">${NAVI.mini}</button>`:`<button onclick="setNav('side')" title="Развернуть">${NAVI.expand}</button>`}<button onclick="setNav('top')" title="Меню в шапке сверху">${NAVI.top}</button>`;
+}
 function renderNav(){
   const cnt = {products:S.products.length, deals:S.deals.filter(d=>['new','talk','reserve','ship'].includes(d.status)).length};
-  $('#tabs').innerHTML = VIEWS.map(([k,n])=>`<button class="tab ${S.view===k?'on':''}" onclick="go('${k}')"><span class="ti">${ICONS[k]}</span><span class="tn">${n}</span>${cnt[k]?`<span class="cnt">${cnt[k]}</span>`:''}</button>`).join('');
+  $('#tabs').innerHTML = VIEWS.map(([k,n])=>`<button class="tab ${S.view===k?'on':''}" onclick="go('${k}')" title="${n}"><span class="ti">${ICONS[k]}</span><span class="tn">${n}</span>${cnt[k]?`<span class="cnt">${cnt[k]}</span>`:''}</button>`).join('');
   $('#bnav').innerHTML = VIEWS.map(([k,n])=>`<button class="${S.view===k?'on':''}" onclick="go('${k}')">${ICONS[k]}${n}</button>`).join('');
 }
 
@@ -1264,6 +1306,7 @@ document.addEventListener('click', e=>{
 (function(){ const h=(location.hash||'').slice(1); if(VIEWS.some(v=>v[0]===h)) S.view=h; })();
 window.addEventListener('hashchange', ()=>{ const h=location.hash.slice(1); if(VIEWS.some(v=>v[0]===h) && h!==S.view){ S.view=h; render(); } });
 $('#appver').textContent='v'+APP_VERSION;
+applyNav();
 async function checkVersion(){
   try{
     const r = await fetch('version.json?t='+Date.now(), {cache:'no-store'}); if(!r.ok) return;
