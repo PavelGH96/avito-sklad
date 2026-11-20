@@ -223,6 +223,15 @@ a.shb{text-decoration:none}a.shb:hover{background:color-mix(in srgb,var(--c) 20%
 .vtog{margin-left:auto;display:inline-flex;background:#fff;border:1px solid var(--line);border-radius:10px;padding:3px}
 .vtog button{border:0;background:none;padding:6px 9px;border-radius:7px;color:var(--ink3);cursor:pointer;display:flex}
 .vtog button.on{background:var(--ink);color:#fff}
+.sh{cursor:pointer;user-select:none;white-space:nowrap;display:inline-flex;align-items:center;gap:3px}
+.pl-h .sh.r{justify-content:flex-end}
+.sh i{font-style:normal;opacity:.35;font-size:11px}
+.sh:hover{color:var(--ink)}.sh:hover i{opacity:.7}
+.sh.on{color:var(--accent)}.sh.on i{opacity:1}
+[data-edit]{cursor:pointer;transition:box-shadow .15s,border-color .15s,background .15s}
+.pc[data-edit]:hover,.dl[data-edit]:hover{box-shadow:0 2px 4px rgba(27,33,49,.06),0 8px 24px rgba(27,33,49,.09);border-color:#E2DFF5}
+.dl{border:1px solid transparent}
+.tbl tr[data-edit]:hover td{background:#FCFBF9}
 .ftot{font-size:13px;color:var(--ink3);margin:0 0 12px}
 .plist{background:#fff;border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden}
 .pl-h,.pl-r{display:grid;grid-template-columns:minmax(0,2.6fr) minmax(0,1.6fr) 110px 130px 80px 70px 70px 190px;gap:12px;align-items:center;padding:10px 16px}
@@ -338,7 +347,7 @@ button,a,select,label{-webkit-tap-highlight-color:transparent;touch-action:manip
 
 <script>
 /* ---------- constants ---------- */
-const APP_VERSION = '1.7';   // keep in sync with version.json
+const APP_VERSION = '1.9';   // keep in sync with version.json
 const APP_DATE = '21.11.2026';
 const CATS = [
   {id:'mattress', name:'Матрас', ico:'🛏️'},
@@ -359,7 +368,7 @@ const DELIV = ['Самовывоз','Авито Доставка','Курьер 
 
 /* ---------- state ---------- */
 const LSV=(k,d)=>{ try{ return localStorage.getItem(k)||d; }catch(e){ return d; } };
-const S = {pview:LSV('sklad-pview','grid'), stockF:'all', pstat:'all', pshop:'all', psort:'name', dprod:'all', ddeliv:'all', dsort:'new', products:[], deals:[], shops:[], shop:'all', view:'products', q:'', cat:'all', dstat:'all', buyerFilter:null, ready:false, readonly:false};
+const S = {pview:LSV('sklad-pview','grid'), stockF:'all', pstat:'all', pshop:'all', psort:'name:asc', bsort:'last:desc', dprod:'all', ddeliv:'all', dsort:'new', products:[], deals:[], shops:[], shop:'all', view:'products', q:'', cat:'all', dstat:'all', buyerFilter:null, ready:false, readonly:false};
 
 /* ---------- utils ---------- */
 const $ = s => document.querySelector(s);
@@ -605,16 +614,21 @@ function vProducts(){
     .filter(p => !q || [p.name,p.size,p.sku,p.notes,cat(p.cat).name].join(' ').toLowerCase().includes(q));
   const mk = p => num(p.cost) ? (num(p.price)-num(p.cost))/num(p.cost) : -1;
   const byName = (a,b)=> String(a.name).localeCompare(String(b.name),'ru');
+  // ascending comparators; direction applied below
   const sorters = {
     name: byName,
-    avail: (a,b)=> st[b.id].available-st[a.id].available || byName(a,b),
-    price_d: (a,b)=> num(b.price)-num(a.price), price_a: (a,b)=> num(a.price)-num(b.price),
-    markup: (a,b)=> mk(b)-mk(a),
-    sold: (a,b)=> (st[b.id].sold+st[b.id].reserved)-(st[a.id].sold+st[a.id].reserved) || byName(a,b),
-    value: (a,b)=> (st[b.id].available+st[b.id].reserved)*num(b.cost)-(st[a.id].available+st[a.id].reserved)*num(a.cost),
-    fresh: (a,b)=> (b.created||0)-(a.created||0),
+    price: (a,b)=> num(a.price)-num(b.price),
+    cost: (a,b)=> num(a.cost)-num(b.cost),
+    markup: (a,b)=> mk(a)-mk(b),
+    avail: (a,b)=> st[a.id].available-st[b.id].available,
+    reserved: (a,b)=> st[a.id].reserved-st[b.id].reserved,
+    sold: (a,b)=> st[a.id].sold-st[b.id].sold,
+    value: (a,b)=> (st[a.id].available+st[a.id].reserved)*num(a.cost)-(st[b.id].available+st[b.id].reserved)*num(b.cost),
+    fresh: (a,b)=> (a.created||0)-(b.created||0),
   };
-  list.sort((a,b)=> (a.status==='off')-(b.status==='off') || (sorters[S.psort]||byName)(a,b));
+  const [sk, sd] = String(S.psort).split(':'); const dir = sd==='desc' ? -1 : 1;
+  const cmp = sorters[sk] || byName;
+  list.sort((a,b)=> (a.status==='off')-(b.status==='off') || dir*cmp(a,b) || byName(a,b));
   const usedCats = CATS.filter(c=>S.products.some(p=>p.cat===c.id));
   let h = `<div class="bar"><h1>Товары</h1>${searchBox('Поиск: название, размер, артикул')}<button class="btn pri" ${ro()} onclick="editProduct()">＋ Товар</button></div>`;
   if(usedCats.length>1) h += `<div class="chips"><button class="chip ${S.cat==='all'?'on':''}" onclick="S.cat='all';render()">Все<b>${S.products.length}</b></button>${usedCats.map(c=>`<button class="chip ${S.cat===c.id?'on':''}" onclick="S.cat='${c.id}';render()">${c.ico} ${c.name}<b>${S.products.filter(p=>p.cat===c.id).length}</b></button>`).join('')}</div>`;
@@ -624,7 +638,7 @@ function vProducts(){
     ${sel('stockF',[['all','Все'],['avail','Есть свободные'],['low','Заканчиваются (≤2)'],['none','Нет свободных'],['reserved','Есть резерв']],'Наличие')}
     ${shops.length?sel('pshop',shopOpts,'Магазин'):''}
     ${sel('pstat',[['all','Все'],['active','В продаже'],['draft','Не выложен'],['off','Снят']],'Статус')}
-    ${sel('psort',[['name','По названию'],['avail','Больше свободных'],['sold','Больше продаж'],['price_d','Дороже'],['price_a','Дешевле'],['markup','Выше наценка'],['value','Дороже остаток'],['fresh','Новые']],'Сортировка')}
+    ${sel('psort',[['name:asc','Название А → Я'],['name:desc','Название Я → А'],['avail:desc','Свободных: больше'],['avail:asc','Свободных: меньше'],['reserved:desc','Резерв: больше'],['sold:desc','Продаж: больше'],['sold:asc','Продаж: меньше'],['price:desc','Цена: дороже'],['price:asc','Цена: дешевле'],['cost:desc','Закупка: дороже'],['cost:asc','Закупка: дешевле'],['markup:desc','Наценка: выше'],['markup:asc','Наценка: ниже'],['value:desc','Остаток в ₽: больше'],['fresh:desc','Сначала новые'],['fresh:asc','Сначала старые']],'Сортировка')}
     ${anyF?`<button class="btn sm ghost" onclick="S.stockF='all';S.pstat='all';S.pshop='all';S.cat='all';S.q='';render()">Сбросить</button>`:''}
     <div class="vtog"><button class="${S.pview==='grid'?'on':''}" onclick="setF('pview','grid')" title="Плитка"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="8" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/><rect x="13" y="13" width="8" height="8" rx="2"/></svg></button><button class="${S.pview==='list'?'on':''}" onclick="setF('pview','list')" title="Список"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="4" width="18" height="4" rx="1.5"/><rect x="3" y="10" width="18" height="4" rx="1.5"/><rect x="3" y="16" width="18" height="4" rx="1.5"/></svg></button></div>
   </div>`;
@@ -634,15 +648,20 @@ function vProducts(){
   h += `<div class="ftot">${list.length} ${plural(list.length,'позиция','позиции','позиций')} · свободно ${tot.u} шт${tot.r?` · в резерве ${tot.r}`:''} · остаток по закупке ${rub(tot.c)} · свободное по цене продажи ${rub(tot.v)}</div>`;
   return h + (S.pview==='list' ? productList(list, st) : `<div class="grid">${list.map(productCard).join('')}</div>`);
 }
+function sortHead(stateKey, key, label, cls='', defDir='desc'){
+  const [k,d] = String(S[stateKey]).split(':'); const on = k===key;
+  const next = on ? (d==='asc'?'desc':'asc') : defDir;
+  return `<span class="sh ${cls} ${on?'on':''}" onclick="setF('${stateKey}','${key}:${next}')" title="Сортировать">${label}<i>${on?(d==='asc'?'↑':'↓'):'↕'}</i></span>`;
+}
 function plural(n,a,b,c){ n=Math.abs(n)%100; const n1=n%10; if(n>10&&n<20) return c; if(n1>1&&n1<5) return b; if(n1===1) return a; return c; }
 function productList(list, st){
   const shops = shopsSorted();
   return `<div class="plist">
-    <div class="pl-h"><span>Товар</span><span>Объявления</span><span class="r">Цена</span><span class="r">Закуп · наценка</span><span class="r">Свободно</span><span class="r">Резерв</span><span class="r">Продано</span><span></span></div>
+    <div class="pl-h">${sortHead('psort','name','Товар','','asc')}<span>Объявления</span>${sortHead('psort','price','Цена','r')}<span class="r">${sortHead('psort','cost','Закуп')} · ${sortHead('psort','markup','наценка')}</span>${sortHead('psort','avail','Свободно','r')}${sortHead('psort','reserved','Резерв','r')}${sortHead('psort','sold','Продано','r')}<span></span></div>
     ${list.map(p=>{ const s=st[p.id], c=cat(p.cat), ps=PSTAT[p.status]||PSTAT.active;
       const m = num(p.cost)&&num(p.price) ? Math.round((num(p.price)-num(p.cost))/num(p.cost)*100) : null;
       const ref = safeUrl(p.refUrl);
-      return `<div class="pl-r ${p.status==='off'?'off':''}">
+      return `<div class="pl-r ${p.status==='off'?'off':''}" data-edit="p:${p.id}">
         <div class="pl-n"><span class="pl-ico">${p.photo?`<img src="${esc(p.photo)}" alt="">`:c.ico}</span><div><b>${esc(p.name||'Без названия')}</b>
           <small>${[p.size, p.status!=='active'?ps.n:''].filter(Boolean).map(esc).join(' · ')}${ref?` · <a href="${esc(ref)}" target="_blank" rel="noopener">${esc(refHost(p.refUrl))} ↗</a>`:''}</small></div></div>
         <div class="pl-l">${shops.length?shops.map(sh=>{ const l=listingOf(p,sh.id), u=safeUrl(l.url); return u?`<a class="shb" style="--c:${esc(sh.color||SHOP_COLORS[0])}" href="${esc(u)}" target="_blank" rel="noopener">${esc(sh.name)}${num(l.price)&&num(l.price)!==num(p.price)?' · '+rub(l.price):''} ↗</a>`:`<span class="shb none">${esc(sh.name)} —</span>`; }).join(''):(safeUrl(p.url)?`<a class="shb" style="--c:var(--accent)" href="${esc(safeUrl(p.url))}" target="_blank" rel="noopener">Авито ↗</a>`:'')}</div>
@@ -651,14 +670,14 @@ function productList(list, st){
         <div class="r pl-s"><b class="${s.available<=0?'alert':'okc'}">${s.available}</b><small class="m-only">своб.</small></div>
         <div class="r pl-s"><b style="color:var(--warn)">${s.reserved||'·'}</b><small class="m-only">рез.</small></div>
         <div class="r pl-s"><b>${s.sold||'·'}</b><small class="m-only">прод.</small></div>
-        <div class="pl-a"><button class="btn sm" ${ro()} onclick="restock('${p.id}')" title="Приход">＋</button><button class="btn sm pri" ${ro()||(s.available<=0?'disabled':'')} onclick="editDeal(null,'${p.id}')">Сделка</button><button class="btn sm ghost" onclick="editProduct('${p.id}')" title="Изменить">✎</button></div>
+        <div class="pl-a"><button class="btn sm" ${ro()} onclick="restock('${p.id}')" title="Приход">＋</button><button class="btn sm pri" ${ro()||(s.available<=0?'disabled':'')} onclick="editDeal(null,'${p.id}')">Сделка</button></div>
       </div>`; }).join('')}
   </div>`;
 }
 function productCard(p){
   const s = stockOf(p), c = cat(p.cat), ps = PSTAT[p.status]||PSTAT.active;
   const url = safeUrl(p.url);
-  return `<div class="pc ${p.status==='off'?'off':''}">
+  return `<div class="pc ${p.status==='off'?'off':''}" data-edit="p:${p.id}">
     <div class="pc-img">${p.photo?`<img src="${esc(p.photo)}" alt="">`:`<span class="ico">${c.ico}</span>`}
       <span class="pc-tag">${esc(c.name)}</span><span class="pc-st ${ps.c}">${ps.n}</span></div>
     <div class="pc-b">
@@ -676,7 +695,6 @@ function productCard(p){
       <div class="pc-act">
         <button class="btn sm" ${ro()} onclick="restock('${p.id}')">＋ Приход</button>
         <button class="btn sm pri" ${ro()||(s.available<=0?'disabled':'')} onclick="editDeal(null,'${p.id}')">Сделка</button>
-        <button class="btn sm ghost" onclick="editProduct('${p.id}')" title="Изменить">✎</button>
       </div>
     </div></div>`;
 }
@@ -746,7 +764,7 @@ function vDeals(){
 function dealRow(d,p){
   const chat = safeUrl(d.chat), prof = safeUrl(d.profile);
   const sum = num(d.qty)*num(d.price);
-  return `<div class="dl">
+  return `<div class="dl" data-edit="d:${d.id}">
     <div><div class="dl-t">${esc(p?p.name:'Товар удалён')}${p&&p.size?` <span style="font-weight:500;color:var(--ink3)">· ${esc(p.size)}</span>`:''}</div>
       <div class="dl-s">${d.shopId?shopBadge(d.shopId)+' ':''}${fdate(d.date)} · ${num(d.qty)} шт × ${rub(d.price)} ${p?diffTag(d.price, priceFor(p,d.shopId)):''}${d.delivery?' · '+esc(d.delivery):''}</div>
       ${d.note?`<div class="dl-s" style="color:var(--ink2)">${esc(d.note)}</div>`:''}</div>
@@ -758,8 +776,7 @@ function dealRow(d,p){
       </div></div>
     <div class="dl-r"><span class="dl-sum">${rub(sum)}</span>
       <div style="display:flex;gap:6px;align-items:center">
-        <select class="st st-${d.status}" ${ro()} onchange="setDealStatus('${d.id}',this.value,this)">${DSTAT.map(s=>`<option value="${s.id}" ${s.id===d.status?'selected':''}>${s.n}</option>`).join('')}</select>
-        <button class="btn sm ghost" onclick="editDeal('${d.id}')" title="Изменить">✎</button></div></div>
+        <select class="st st-${d.status}" ${ro()} onchange="setDealStatus('${d.id}',this.value,this)">${DSTAT.map(s=>`<option value="${s.id}" ${s.id===d.status?'selected':''}>${s.n}</option>`).join('')}</select></div></div>
   </div>`;
 }
 function copyPhone(id){ const d=S.deals.find(x=>x.id===id); if(d) copy(d.phone,'Телефон скопирован'); }
@@ -779,11 +796,13 @@ function vBuyers(){
   }
   let list = Object.values(map);
   if(q) list = list.filter(b=>[b.name,b.phone].join(' ').toLowerCase().includes(q));
-  list.sort((a,b)=>String(b.last).localeCompare(String(a.last)));
+  { const [bk,bd]=String(S.bsort).split(':'); const dr=bd==='asc'?1:-1;
+    const c={name:(a,b)=>String(a.name||'').localeCompare(String(b.name||''),'ru'), deals:(a,b)=>a.deals-b.deals, sum:(a,b)=>a.sum-b.sum, last:(a,b)=>String(a.last).localeCompare(String(b.last))}[bk]||((a,b)=>0);
+    list.sort((a,b)=> dr*c(a,b) || String(b.last).localeCompare(String(a.last))); }
   let h = `<div class="bar"><h1>Покупатели</h1>${searchBox('Поиск: имя или телефон')}</div>`;
   if(!list.length) return h + emptyS('👥', S.deals.length?'Ничего не найдено':'Покупателей пока нет','Покупатели появляются здесь автоматически из сделок — с телефоном и ссылкой на чат.');
-  return h + `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Покупатель</th><th>Связь</th><th class="num">Сделок</th><th class="num">Куплено на</th><th class="num">Последняя</th></tr></thead><tbody>
-    ${(window._bk=list.map(b=>b.key), window._bp=list.map(b=>b.phone), list.map((b,i)=>{ const chat=safeUrl(b.chat), prof=safeUrl(b.profile); return `<tr>
+  return h + `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>${sortHead('bsort','name','Покупатель','','asc')}</th><th>Связь</th><th class="num">${sortHead('bsort','deals','Сделок')}</th><th class="num">${sortHead('bsort','sum','Куплено на')}</th><th class="num">${sortHead('bsort','last','Последняя')}</th></tr></thead><tbody>
+    ${(window._bk=list.map(b=>b.key), window._bp=list.map(b=>b.phone), list.map((b,i)=>{ const chat=safeUrl(b.chat), prof=safeUrl(b.profile); return `<tr data-edit="b:${i}">
       <td><a href="#deals" onclick="event.preventDefault();openBuyer(${i})" style="font-weight:700;color:var(--ink);text-decoration:none">${esc(b.name||'Без имени')}</a></td>
       <td><div class="links">${b.phone?`<button class="lk ph" onclick="copy(window._bp[${i}],'Телефон скопирован')">📞 ${esc(b.phone)}</button>`:''}${chat?`<a class="lk" href="${esc(chat)}" target="_blank" rel="noopener">💬 Чат</a>`:''}${prof?`<a class="lk" href="${esc(prof)}" target="_blank" rel="noopener">👤</a>`:''}</div></td>
       <td class="num">${b.deals}${b.sold?` <span style="color:var(--ok);font-size:12px">(${b.sold} ✓)</span>`:''}</td>
@@ -1051,6 +1070,15 @@ async function setDealStatus(id, status, el){
   try{ await writeDoc('d', nd); toast(status==='sold'?'Продано — остаток обновлён':'Статус: '+dsn(status)); }catch(e){ el.value=d.status; }
 }
 function delDeal(id){ confirmBox('Удалить сделку? Товар вернётся в свободный остаток.', 'Удалить', async()=>{ await removeDoc('d',id); toast('Сделка удалена'); }); }
+
+/* ---------- tap a card to open it ---------- */
+document.addEventListener('click', e=>{
+  if(e.target.closest('a,button,select,input,textarea,label,.lk')) return;
+  if(window.getSelection && String(window.getSelection()).length) return;   // user is selecting text
+  const el = e.target.closest('#main [data-edit]'); if(!el) return;
+  const [k, id] = el.dataset.edit.split(/:(.+)/);
+  if(k==='p') editProduct(id); else if(k==='d') editDeal(id); else if(k==='b') openBuyer(+id);
+});
 
 /* ---------- start ---------- */
 (function(){ const h=(location.hash||'').slice(1); if(VIEWS.some(v=>v[0]===h)) S.view=h; })();
