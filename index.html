@@ -208,6 +208,11 @@ a.shb.none{--c:#9096A6;opacity:.7}
 .pc-ref{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:12.5px;color:var(--ink3);margin-top:-4px}
 .pc-ref a{font-weight:700;text-decoration:none}
 .mk{color:var(--ok);font-weight:700}
+.df{font-size:11.5px;font-weight:700;padding:1px 6px;border-radius:6px;white-space:nowrap}
+.df.dn{background:var(--badSoft);color:var(--bad)}
+.df.up{background:var(--okSoft);color:var(--ok)}
+.phint{font-size:12.5px;color:var(--ink2);background:#F6F5F1;border-radius:9px;padding:8px 10px;margin:-4px 0 12px;line-height:1.6}
+.phint:empty{display:none}
 .listings{display:flex;gap:5px;flex-wrap:wrap}
 .lst{display:grid;grid-template-columns:minmax(0,1fr) 120px;gap:8px;align-items:center;margin-bottom:8px}
 .lst .nm{grid-column:1/-1;margin-bottom:-2px}
@@ -555,6 +560,7 @@ function productCard(p){
       <div class="pc-meta">${[p.size, p.sku?('арт. '+p.sku):''].filter(Boolean).map(esc).join(' · ')||'&nbsp;'}</div></div>
       <div class="pc-price"><b>${rub(p.price)}</b>${num(p.cost)?`<span>закуп ${rub(p.cost)}${num(p.price)?` · <span class="mk">+${Math.round((num(p.price)-num(p.cost))/num(p.cost)*100)}%</span>`:''}</span>`:''}</div>
       ${num(p.retail)||safeUrl(p.refUrl)?`<div class="pc-ref">${num(p.retail)?`<span>розница <s>${rub(p.retail)}</s></span>`:''}${safeUrl(p.refUrl)?`<a href="${esc(safeUrl(p.refUrl))}" target="_blank" rel="noopener">${esc(refHost(p.refUrl))} ↗</a>`:''}</div>`:''}
+      ${(()=>{ const st=priceStats(p); if(!st) return ''; return `<div class="pc-ref"><span>продано по ${st.min===st.max?rub(st.min):rub(st.min)+' – '+rub(st.max)}${st.n>1?` · ср. ${rub(st.avg)}`:''}</span></div>`; })()}
       ${cardListings(p, url)}
       <div class="stock">
         <div class="av ${s.available<=0?'zero':''}"><small>Свободно</small><b>${s.available}</b></div>
@@ -567,6 +573,17 @@ function productCard(p){
         <button class="btn sm ghost" onclick="editProduct('${p.id}')" title="Изменить">✎</button>
       </div>
     </div></div>`;
+}
+// actual selling prices of a product (deals that took stock)
+function priceStats(p){
+  const ds=S.deals.filter(d=>d.productId===p.id && ['reserve','ship','sold'].includes(d.status) && num(d.price));
+  if(!ds.length) return null;
+  const pr=ds.map(d=>num(d.price)); const q=ds.reduce((a,d)=>a+num(d.qty),0);
+  return {min:Math.min(...pr), max:Math.max(...pr), avg:ds.reduce((a,d)=>a+num(d.price)*num(d.qty),0)/q, n:ds.length};
+}
+function diffTag(price, base){
+  const df=num(price)-num(base); if(!num(base)||!num(price)||Math.abs(df)<1) return '';
+  return `<span class="df ${df<0?'dn':'up'}" title="Отличие от обычной цены ${rub(base)}">${df<0?'−':'+'}${rub(Math.abs(df))}</span>`;
 }
 function refHost(u){ try{ return new URL(safeUrl(u)).hostname.replace(/^www\./,''); }catch(e){ return 'сайт'; } }
 function cardListings(p, legacyUrl){
@@ -612,7 +629,7 @@ function dealRow(d,p){
   const sum = num(d.qty)*num(d.price);
   return `<div class="dl">
     <div><div class="dl-t">${esc(p?p.name:'Товар удалён')}${p&&p.size?` <span style="font-weight:500;color:var(--ink3)">· ${esc(p.size)}</span>`:''}</div>
-      <div class="dl-s">${d.shopId?shopBadge(d.shopId)+' ':''}${fdate(d.date)} · ${num(d.qty)} шт × ${rub(d.price)}${d.delivery?' · '+esc(d.delivery):''}</div>
+      <div class="dl-s">${d.shopId?shopBadge(d.shopId)+' ':''}${fdate(d.date)} · ${num(d.qty)} шт × ${rub(d.price)} ${p?diffTag(d.price, priceFor(p,d.shopId)):''}${d.delivery?' · '+esc(d.delivery):''}</div>
       ${d.note?`<div class="dl-s" style="color:var(--ink2)">${esc(d.note)}</div>`:''}</div>
     <div class="buyer"><span class="nm">${esc(d.buyer||'Покупатель')}</span>
       <div class="links">
@@ -847,9 +864,10 @@ function editDeal(id, productId){
     ${S.shops.length ? `<div class="fl"><label>Магазин</label><select class="inp" id="d_shop" onchange="dealProdChanged()">${shopsSorted().map(sh=>`<option value="${sh.id}" ${sh.id===base.shopId?'selected':''}>${esc(sh.name)}</option>`).join('')}${d && d.shopId && !shopOf(d.shopId)?'<option value="'+esc(d.shopId)+'" selected>Магазин удалён</option>':''}${d && !d.shopId?'<option value="" selected>— не указан —</option>':''}</select></div>` : ''}
     <div class="fr three">
       <div class="fl"><label>Кол-во</label><input class="inp" id="d_qty" inputmode="numeric" value="${esc(base.qty)}"></div>
-      <div class="fl"><label>Цена за шт, ₽</label><input class="inp" id="d_price" inputmode="decimal" value="${esc(base.price)}"></div>
+      <div class="fl"><label>Цена за шт, ₽</label><input class="inp" id="d_price" inputmode="decimal" value="${esc(base.price)}" oninput="priceHint()"></div>
       <div class="fl"><label>Статус</label><select class="inp" id="d_status">${DSTAT.map(s=>`<option value="${s.id}" ${s.id===base.status?'selected':''}>${s.n}</option>`).join('')}</select></div>
     </div>
+    <div class="phint" id="d_hint"></div>
     <div class="fr">
       <div class="fl"><label>Дата</label><input class="inp" type="date" id="d_date" value="${esc(base.date)}"></div>
       <div class="fl"><label>Доставка</label><select class="inp" id="d_deliv"><option value="">—</option>${DELIV.map(x=>`<option ${x===base.delivery?'selected':''}>${x}</option>`).join('')}</select></div>
@@ -870,8 +888,19 @@ function editDeal(id, productId){
   <div class="md-f">${!isNew&&!S.readonly?`<button class="btn danger ghost left" onclick="delDeal('${id}')">Удалить</button>`:''}
     <button class="btn" onclick="closeModal()">Отмена</button>
     <button class="btn pri" ${ro()} onclick="saveDeal('${id||''}')">${isNew?'Создать':'Сохранить'}</button></div>`);
+  priceHint();
 }
-function dealProdChanged(){ const p=S.products.find(x=>x.id===val('d_prod')); if(p){ const pr=priceFor(p, val('d_shop')); if(pr) $('#d_price').value = pr; } }
+function dealProdChanged(){ const p=S.products.find(x=>x.id===val('d_prod')); if(p){ const pr=priceFor(p, val('d_shop')); if(pr) $('#d_price').value = pr; } priceHint(); }
+function priceHint(){
+  const el=$('#d_hint'); if(!el) return;
+  const p=S.products.find(x=>x.id===val('d_prod')); const price=num(val('d_price'));
+  if(!p){ el.innerHTML=''; return; }
+  const base=priceFor(p, val('d_shop')), cost=num(p.cost), st=priceStats(p);
+  const parts=[`обычная цена <b>${rub(base)}</b> ${diffTag(price,base)}`];
+  if(cost && price) parts.push(`прибыль с шт <b style="color:${price-cost<0?'var(--bad)':'var(--ok)'}">${rub(price-cost)}</b> (+${Math.round((price-cost)/cost*100)}%)`);
+  if(st) parts.push(`продавали ${st.min===st.max?rub(st.min):rub(st.min)+'–'+rub(st.max)}`);
+  el.innerHTML = parts.join(' · ');
+}
 function canTake(productId, qty, status, exceptId){
   if(!['reserve','ship','sold'].includes(status)) return true;
   const p = S.products.find(x=>x.id===productId); if(!p) return true;
