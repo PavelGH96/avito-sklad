@@ -364,6 +364,36 @@ a.shb{text-decoration:none}a.shb:hover{background:color-mix(in srgb,var(--c) 20%
 .bdot{position:absolute;margin-left:18px;margin-top:-4px;background:var(--bad);color:#fff;font-style:normal;font-size:10px;line-height:16px;min-width:16px;padding:0 4px;border-radius:8px}
 .bnav button{position:relative}
 @media(max-width:760px){ .today-g{grid-template-columns:1fr 1fr;gap:8px} .tcard{padding:9px 11px;gap:8px} .tcard b{font-size:18px} .tcard .ti2{font-size:19px} .tcard em{display:none} .today-h{font-size:12px;margin-bottom:6px} .due{display:inline;margin-left:6px} }
+.lead{margin:-6px 0 14px;color:var(--ink3);font-size:13.5px}
+.wgroup{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);margin-bottom:12px;overflow:hidden;border:1px solid transparent}
+.wgroup.ready{border-color:#9ED4B4}
+.wg-h{display:flex;align-items:center;gap:12px;padding:12px 16px;background:#FBFAF8;border-bottom:1px solid var(--line)}
+.wgroup.ready .wg-h{background:var(--okSoft)}
+.wg-h img{width:52px;height:36px;object-fit:cover;border-radius:8px;cursor:zoom-in}
+.wg-h b{display:block;font-size:15px}
+.wg-h small{font-size:12.5px;color:var(--ink2)}
+.wg-n{margin-left:auto;font-weight:800;font-size:18px;color:var(--ink3)}
+.wrow{display:grid;grid-template-columns:80px minmax(0,1.4fr) minmax(0,1.6fr) auto;gap:12px;align-items:center;padding:10px 16px;border-bottom:1px solid #F0EEE9}
+.wrow:last-child{border-bottom:0}
+.wrow:hover{background:#FCFBF9}
+.wr-d{font-size:13px;color:var(--ink2);font-weight:700}
+.wr-b small{display:block;font-size:12px;color:var(--ink3)}
+.wr-a{display:flex;gap:6px;align-items:center;justify-content:flex-end;flex-wrap:wrap}
+.wst{font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:20px;background:#EEEDEA;color:var(--ink2)}
+.ws-wait{background:var(--moonSoft);color:#9A6A08}.ws-notified{background:var(--blueSoft);color:var(--blue)}.ws-deal{background:var(--okSoft);color:var(--ok)}
+.wbadge{border:0;cursor:pointer;font:inherit;font-size:12px;font-weight:700;padding:2px 9px;border-radius:20px;background:var(--moonSoft);color:#9A6A08;align-self:flex-start}
+.wbadge.ready{background:#FFE7B8;color:#7A4F00;box-shadow:0 0 0 2px #F3C99A}
+.pl-n small .wbadge{font-size:10.5px;padding:1px 7px}
+@media(max-width:760px){ .wrow{grid-template-columns:1fr auto;grid-template-areas:"b d" "l l" "a a"} .wr-b{grid-area:b}.wr-d{grid-area:d;text-align:right}.wrow .links{grid-area:l}.wr-a{grid-area:a;justify-content:flex-start} }
+.tpl{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:10px;background:var(--card)}
+.tpl-h{display:flex;gap:8px;align-items:center;justify-content:space-between;margin-bottom:6px}
+.tpl-t{white-space:pre-wrap;font-size:14px;line-height:1.45;color:var(--ink);background:#F8F7F4;border-radius:9px;padding:8px 10px;margin-bottom:8px}
+.tpl-a{display:flex;gap:6px;flex-wrap:wrap}
+.tpl.ed textarea{width:100%}
+.ecats{display:flex;flex-wrap:wrap;gap:6px;margin:-4px 0 10px}
+.ecats span{font-size:12.5px;background:#F6F5F1;border-radius:20px;padding:3px 10px;color:var(--ink2)}
+.rows .rw.tot{border-top:2px solid var(--line);margin-top:4px;padding-top:10px}
+.rows .rw[data-edit]:hover{background:#FCFBF9}
 .ftot{font-size:13px;color:var(--ink3);margin:0 0 12px}
 .plist{background:#fff;border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden}
 .pl-h,.pl-r{display:grid;grid-template-columns:minmax(0,2.6fr) minmax(0,1.6fr) 110px 130px 80px 70px 70px 190px;gap:12px;align-items:center;padding:10px 16px}
@@ -470,7 +500,7 @@ button,a,select,label{-webkit-tap-highlight-color:transparent;touch-action:manip
     <div class="brand"><div class="moon"></div><div>Склад Авито<span class="sync off" id="syncdot" title="Синхронизация"></span><small>товары для сна · <span id="appver">v</span></small></div></div>
     <nav class="tabs" id="tabs"></nav>
     <div class="navctl" id="navctl"></div>
-    <button class="userbtn" id="userbtn" onclick="accountModal()" title="Аккаунт и доступ" style="display:none"></button>
+    <button class="userbtn" id="userbtn" onclick="accountModal()" title="Настройки и доступ" style="display:none"></button>
   </div>
 </header>
 <div class="banner" id="banner"></div>
@@ -482,7 +512,7 @@ button,a,select,label{-webkit-tap-highlight-color:transparent;touch-action:manip
 
 <script>
 /* ---------- constants ---------- */
-const APP_VERSION = '3.0';   // keep in sync with version.json
+const APP_VERSION = '3.1';   // keep in sync with version.json
 const APP_DATE = '21.11.2026';
 const CATS = [
   {id:'mattress', name:'Матрас', ico:'🛏️'},
@@ -505,7 +535,7 @@ const DELIV = ['Самовывоз','Авито Доставка','Курьер 
 
 /* ---------- state ---------- */
 const LSV=(k,d)=>{ try{ return localStorage.getItem(k)||d; }catch(e){ return d; } };
-const S = {pview:LSV('sklad-pview','grid'), stockF:'all', pstat:'all', pshop:'all', psort:'name:asc', bsort:'last:desc', dprod:'all', ddeliv:'all', dsort:'date:desc', dquick:'', dper:'all', dfrom:'', dto:'', products:[], deals:[], shops:[], shop:'all', view:'products', q:'', cat:'all', dstat:'all', buyerFilter:null, ready:false, readonly:false};
+const S = {waits:[], tpls:[], exps:[], wstat:'wait', wprod:'all', sper:'month', pview:LSV('sklad-pview','grid'), stockF:'all', pstat:'all', pshop:'all', psort:'name:asc', bsort:'last:desc', dprod:'all', ddeliv:'all', dsort:'date:desc', dquick:'', dper:'all', dfrom:'', dto:'', products:[], deals:[], shops:[], shop:'all', view:'products', q:'', cat:'all', dstat:'all', buyerFilter:null, ready:false, readonly:false};
 
 /* ---------- utils ---------- */
 const $ = s => document.querySelector(s);
@@ -546,13 +576,15 @@ const SB_URL='https://tribgnfjiiwmiktzjeyy.supabase.co';
 const SB_KEY='sb_publishable_c4EdjWTFqVhoAGCiX7LMIA_P6PZSbLu';
 const CACHE='avito-sklad-cache-v1';
 let sb=null, me=null, chan=null;
-const TBL={p:'sklad_products', d:'sklad_deals', s:'sklad_shops'};
-function saveCache(){ try{ localStorage.setItem(CACHE, JSON.stringify({products:S.products, deals:S.deals, shops:S.shops, email:me&&me.email})); }catch(e){} }
-function loadCache(email){ try{ const d=JSON.parse(localStorage.getItem(CACHE)||'{}'); if(d.email===email){ S.products=d.products||[]; S.deals=d.deals||[]; S.shops=d.shops||[]; return true; } }catch(e){} return false; }
+// kind -> [state key, table]
+const KINDS = {p:['products','sklad_products'], d:['deals','sklad_deals'], s:['shops','sklad_shops'], w:['waits','sklad_waitlist'], t:['tpls','sklad_templates'], e:['exps','sklad_expenses']};
+const TBL = Object.fromEntries(Object.entries(KINDS).map(([k,v])=>[k,v[1]]));
+function saveCache(){ try{ const o={email:me&&me.email}; for(const [k,[key]] of Object.entries(KINDS)) o[key]=S[key]; localStorage.setItem(CACHE, JSON.stringify(o)); }catch(e){} }
+function loadCache(email){ try{ const d=JSON.parse(localStorage.getItem(CACHE)||'{}'); if(d.email===email){ for(const [k,[key]] of Object.entries(KINDS)) S[key]=d[key]||[]; return true; } }catch(e){} return false; }
 function clean(o){ const r={...o}; delete r.id; return JSON.parse(JSON.stringify(r)); }
-function arrOf(kind){ return kind==='p'?S.products:kind==='s'?S.shops:S.deals; }
+function arrOf(kind){ return S[KINDS[kind][0]]; }
 function putLocal(kind,obj){ const a=arrOf(kind); const i=a.findIndex(x=>x.id===obj.id); if(i>=0) a[i]=obj; else a.push(obj); }
-function dropLocal(kind,id){ if(kind==='p') S.products=S.products.filter(x=>x.id!==id); else if(kind==='s') S.shops=S.shops.filter(x=>x.id!==id); else S.deals=S.deals.filter(x=>x.id!==id); }
+function dropLocal(kind,id){ const key=KINDS[kind][0]; S[key]=S[key].filter(x=>x.id!==id); }
 
 async function writeDoc(kind, obj){
   const prev = arrOf(kind).find(x=>x.id===obj.id);
@@ -573,11 +605,10 @@ function handleWriteErr(e){
 }
 
 async function loadAll(){
-  const [p,d,sh] = await Promise.all([sb.from(TBL.p).select('id,data'), sb.from(TBL.d).select('id,data'), sb.from(TBL.s).select('id,data')]);
-  if(p.error||d.error||sh.error) throw (p.error||d.error||sh.error);
-  S.shops = sh.data.map(r=>({...r.data, id:r.id}));
-  S.products = p.data.map(r=>({...r.data, id:r.id}));
-  S.deals = d.data.map(r=>({...r.data, id:r.id}));
+  const ks = Object.keys(KINDS);
+  const res = await Promise.all(ks.map(k=>sb.from(TBL[k]).select('id,data')));
+  const bad = res.find(r=>r.error); if(bad) throw bad.error;
+  ks.forEach((k,i)=>{ S[KINDS[k][0]] = res[i].data.map(r=>({...r.data, id:r.id})); });
   saveCache();
 }
 function subscribe(){
@@ -587,11 +618,9 @@ function subscribe(){
     else { const r=payload.new; putLocal(kind, {...r.data, id:r.id}); }
     saveCache(); render();
   };
-  chan = sb.channel('sklad')
-    .on('postgres_changes',{event:'*',schema:'public',table:TBL.p}, on('p'))
-    .on('postgres_changes',{event:'*',schema:'public',table:TBL.d}, on('d'))
-    .on('postgres_changes',{event:'*',schema:'public',table:TBL.s}, on('s'))
-    .subscribe(st=>{ const dot=$('#syncdot'); if(dot) dot.classList.toggle('off', st!=='SUBSCRIBED'); });
+  chan = sb.channel('sklad');
+  for(const k of Object.keys(KINDS)) chan.on('postgres_changes',{event:'*',schema:'public',table:TBL[k]}, on(k));
+  chan.subscribe(st=>{ const dot=$('#syncdot'); if(dot) dot.classList.toggle('off', st!=='SUBSCRIBED'); });
 }
 
 async function init(){
@@ -604,7 +633,7 @@ async function init(){
 async function afterLogin(user){
   me = user; S.ready=false;
   document.querySelector('.top').style.display=''; $('#bnav').style.display='';
-  $('#userbtn').style.display=''; $('#userbtn').innerHTML=`<span class="av">${esc((user.email||'?')[0].toUpperCase())}</span><span class="ut"><b>Аккаунт</b><small>${esc(user.email||'')}</small></span>`;
+  $('#userbtn').style.display=''; $('#userbtn').innerHTML=`<span class="av">${esc((user.email||'?')[0].toUpperCase())}</span><span class="ut"><b>Настройки</b><small>${esc(user.email||'')}</small></span>`;
   if(loadCache(user.email)){ S.ready=true; }
   render();
   try{
@@ -647,20 +676,23 @@ async function resetPass(){
   $('#aerr').textContent = error ? error.message : 'Письмо для сброса пароля отправлено';
 }
 function showNoAccess(){
-  S.products=[]; S.deals=[];
+  for(const [k,[key]] of Object.entries(KINDS)) S[key]=[];
   document.querySelector('.top').style.display='none'; $('#bnav').style.display='none';
   $('#main').innerHTML = `<div class="auth"><div class="auth-c"><div class="moon"></div><h1>Нет доступа</h1>
     <p>Аккаунт <b>${esc(me.email)}</b> пока не добавлен на склад. Попросите владельца добавить этот email в разделе «Доступ».</p>
     <button class="btn" onclick="logout()">Выйти</button></div></div>`;
 }
-async function logout(){ closeModal(); if(chan) sb.removeChannel(chan); chan=null; await sb.auth.signOut(); me=null; S.products=[]; S.deals=[]; S.shops=[]; try{localStorage.removeItem(CACHE);}catch(e){} authMode='in'; showAuth(); }
+async function logout(){ closeModal(); if(chan) sb.removeChannel(chan); chan=null; await sb.auth.signOut(); me=null; for(const [k,[key]] of Object.entries(KINDS)) S[key]=[]; try{localStorage.removeItem(CACHE);}catch(e){} authMode='in'; showAuth(); }
 
 /* ---------- account & members ---------- */
 async function accountModal(){
-  openModal(`<div class="md-h"><h2>Аккаунт и доступ</h2><button class="x" onclick="closeModal()">×</button></div>
+  openModal(`<div class="md-h"><h2>Настройки</h2><button class="x" onclick="closeModal()">×</button></div>
   <div class="md-b"><p style="margin:0 0 6px;color:var(--ink2)">Вы вошли как <b>${esc(me.email)}</b><span class="sync" id="syncdot2"></span></p>
     <p style="margin:0 0 6px;color:var(--ink3);font-size:13px">Версия приложения <b style="color:var(--ink)">${APP_VERSION}</b> от ${APP_DATE}</p>
-    <div class="sec">Магазины на Авито</div><div id="shoplist"></div>
+    <div class="sec">Шаблоны ответов</div>
+    <p style="margin:0 0 8px;font-size:13px;color:var(--ink3)">Готовые тексты для чата Авито: ${S.tpls.length} шт.</p>
+    <button class="btn sm" onclick="editTemplates()">✎ Редактировать шаблоны</button>
+    <div class="sec" style="margin-top:16px">Магазины на Авито</div><div id="shoplist"></div>
     <form onsubmit="event.preventDefault();addShop()" style="display:flex;gap:8px;margin-top:10px"><input class="inp" id="s_name" placeholder="Название магазина" required><button class="btn">Добавить</button></form>
     <div class="sec" style="margin-top:16px">Кто имеет доступ к складу</div><div id="memlist" style="color:var(--ink3)">Загружаю…</div>
     <form onsubmit="event.preventDefault();addMember()" style="display:flex;gap:8px;margin-top:12px"><input class="inp" id="m_email" type="email" placeholder="email помощника" required><button class="btn pri">Добавить</button></form>
@@ -713,9 +745,10 @@ const ICONS = {
   products:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>',
   deals:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h16M4 17h10"/></svg>',
   buyers:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="4"/><path d="M2 21c0-4 3-6 7-6s7 2 7 6"/><path d="M17 4a4 4 0 010 8M22 21c0-3-1.5-5-4-5.7"/></svg>',
+  wait:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12M6 21h12M7 3c0 5 10 5 10 9s-10 4-10 9M17 3c0 5-10 5-10 9"/></svg>',
   summary:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>',
 };
-const VIEWS = [['products','Товары'],['deals','Сделки'],['buyers','Покупатели'],['summary','Сводка']];
+const VIEWS = [['products','Товары'],['deals','Сделки'],['buyers','Покупатели'],['wait','Ожидание'],['summary','Сводка']];
 function go(v){ S.view=v; if(v!=='deals') S.buyerFilter=null; try{ history.replaceState(null,'','#'+v);}catch(e){ location.hash=v; } render(); window.scrollTo(0,0); }
 const NAVI = {
   side:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></svg>',
@@ -734,7 +767,7 @@ function applyNav(){
     : `${S.nav==='side'?`<button onclick="setNav('mini')" title="Свернуть до иконок">${NAVI.mini}</button>`:`<button onclick="setNav('side')" title="Развернуть">${NAVI.expand}</button>`}<button onclick="setNav('top')" title="Меню в шапке сверху">${NAVI.top}</button>`;
 }
 function renderNav(){
-  const cnt = {products:S.products.length, deals:S.deals.filter(d=>ACTIVE.includes(d.status)).length};
+  const cnt = {products:S.products.length, deals:S.deals.filter(d=>ACTIVE.includes(d.status)).length, wait:S.waits.filter(w=>(w.status||'wait')==='wait').length};
   const hot = S.deals.filter(d=>{ const di=dueInfo(d); return di&&di.cls; }).length;
   $('#tabs').innerHTML = VIEWS.map(([k,n])=>`<button class="tab ${S.view===k?'on':''}" onclick="go('${k}')" title="${n}"><span class="ti">${ICONS[k]}</span><span class="tn">${n}</span>${cnt[k]?`<span class="cnt ${k==='deals'&&hot?'hotc':''}">${cnt[k]}</span>`:''}</button>`).join('');
   $('#bnav').innerHTML = VIEWS.map(([k,n])=>`<button class="${S.view===k?'on':''}" onclick="go('${k}')">${ICONS[k]}${n}${k==='deals'&&hot?`<i class="bdot">${hot}</i>`:''}</button>`).join('');
@@ -745,7 +778,7 @@ function render(){
   renderNav();
   const m = $('#main');
   if(!S.ready){ m.innerHTML='<div class="loading">Загружаю данные…</div>'; return; }
-  m.innerHTML = ({products:vProducts, deals:vDeals, buyers:vBuyers, summary:vSummary}[S.view])();
+  m.innerHTML = ({products:vProducts, deals:vDeals, buyers:vBuyers, wait:vWait, summary:vSummary}[S.view])();
   const si = $('#q'); if(si && render._focus){ si.focus(); si.setSelectionRange(si.value.length, si.value.length); }
 }
 function setQ(v){ S.q=v; render._focus=true; render(); render._focus=false; }
@@ -821,7 +854,7 @@ function productList(list, st){
       const ref = safeUrl(p.refUrl);
       return `<div class="pl-r ${p.status==='off'?'off':''} ${isListed(p)?'listed':'unlisted'}" data-edit="p:${p.id}">
         <div class="pl-n"><span class="pl-ico">${photoOf(p)?`<img src="${esc(photoOf(p))}" alt="${esc(p.name)}" loading="lazy" referrerpolicy="no-referrer" data-zoom>`:c.ico}</span><div><b>${esc(p.name||'Без названия')}</b>
-          <small>${avitoBadge(p)} ${[p.size].filter(Boolean).map(esc).join(' · ')}${ref?` · <a href="${esc(ref)}" target="_blank" rel="noopener">${esc(refHost(p.refUrl))} ↗</a>`:''}</small></div></div>
+          <small>${avitoBadge(p)} ${waitBadge(p)} ${[p.size].filter(Boolean).map(esc).join(' · ')}${ref?` · <a href="${esc(ref)}" target="_blank" rel="noopener">${esc(refHost(p.refUrl))} ↗</a>`:''}</small></div></div>
         <div class="pl-l">${shops.length?shops.map(sh=>{ const l=listingOf(p,sh.id), u=safeUrl(l.url); return u?`<a class="shb" style="--c:${esc(sh.color||SHOP_COLORS[0])}" href="${esc(u)}" target="_blank" rel="noopener">${esc(sh.name)}${num(l.price)&&num(l.price)!==num(p.price)?' · '+rub(l.price):''} ↗</a>`:`<span class="shb none">${esc(sh.name)} —</span>`; }).join(''):(safeUrl(p.url)?`<a class="shb" style="--c:var(--accent)" href="${esc(safeUrl(p.url))}" target="_blank" rel="noopener">Авито ↗</a>`:'')}</div>
         <div class="r pl-p"><b>${rub(p.price)}</b>${num(p.retail)?`<small><s>${rub(p.retail)}</s></small>`:''}</div>
         <div class="r pl-c">${num(p.cost)?rub(p.cost):'—'}${m!==null?`<small class="mk">+${m}%</small>`:''}</div>
@@ -841,6 +874,7 @@ function productCard(p){
     <div class="pc-b">
       <div><div class="pc-name">${esc(p.name||'Без названия')}</div>
       <div class="pc-meta">${[p.size, p.sku?('арт. '+p.sku):''].filter(Boolean).map(esc).join(' · ')||'&nbsp;'}</div></div>
+      ${waitBadge(p)}
       <div class="pc-price"><b>${rub(p.price)}</b>${num(p.cost)?`<span>закуп ${rub(p.cost)}${num(p.price)?` · <span class="mk">+${Math.round((num(p.price)-num(p.cost))/num(p.cost)*100)}%</span>`:''}</span>`:''}</div>
       ${num(p.retail)||safeUrl(p.refUrl)?`<div class="pc-ref">${num(p.retail)?`<span>розница <s>${rub(p.retail)}</s></span>`:''}${safeUrl(p.refUrl)?`<a href="${esc(safeUrl(p.refUrl))}" target="_blank" rel="noopener">${esc(refHost(p.refUrl))} ↗</a>`:''}</div>`:''}
       ${(()=>{ const st=priceStats(p); if(!st) return ''; return `<div class="pc-ref"><span>продано по ${st.min===st.max?rub(st.min):rub(st.min)+' – '+rub(st.max)}${st.n>1?` · ср. ${rub(st.avg)}`:''}</span></div>`; })()}
@@ -1002,6 +1036,7 @@ function dealRow(d,p){
         ${d.phone?`<button class="lk ph" onclick="copyPhone('${d.id}')" title="Скопировать">📞 ${esc(d.phone)}</button>`:''}
         ${chat?`<a class="lk" href="${esc(chat)}" target="_blank" rel="noopener">💬 Чат</a>`:''}
         ${prof?`<a class="lk" href="${esc(prof)}" target="_blank" rel="noopener">👤</a>`:''}
+        <button class="lk" onclick="openTemplates({deal:'${d.id}'})" title="Шаблон ответа">📝</button>
       </div></div>
     <div class="dt-q r">${num(d.qty)}<span class="m-only"> шт ×</span></div>
     <div class="dt-pr r">${rub(d.price)}${p?diffTag(d.price, priceFor(p,d.shopId)):''}</div>
@@ -1042,67 +1077,252 @@ function vBuyers(){
   </tbody></table></div>`;
 }
 
+/* ---------- waitlist ---------- */
+const WSTAT = [{id:'wait', n:'Ждут'}, {id:'notified', n:'Написал'}, {id:'deal', n:'Оформлен'}, {id:'closed', n:'Закрыт'}];
+function waitsFor(pid){ return S.waits.filter(w=>w.productId===pid && (w.status||'wait')==='wait'); }
+function vWait(){
+  const q = S.q.trim().toLowerCase();
+  const pm = Object.fromEntries(S.products.map(p=>[p.id,p]));
+  const cnt = Object.fromEntries(WSTAT.map(s=>[s.id, S.waits.filter(w=>(w.status||'wait')===s.id).length]));
+  let list = S.waits.slice();
+  if(S.wstat!=='all') list = list.filter(w=>(w.status||'wait')===S.wstat);
+  if(S.wprod!=='all') list = list.filter(w=>w.productId===S.wprod);
+  if(q) list = list.filter(w=>[w.buyer,w.phone,w.note,w.want,pm[w.productId]?.name].join(' ').toLowerCase().includes(q));
+  let h = `<div class="bar"><h1>Лист ожидания</h1>${searchBox('Поиск: покупатель, товар')}<button class="btn pri" ${ro()} onclick="editWait()">＋ Запрос</button></div>
+  <p class="lead">Кто спрашивал товар, которого нет. Когда товар появится — здесь будет видно, кому написать.</p>
+  <div class="chips"><button class="chip ${S.wstat==='all'?'on':''}" onclick="setF('wstat','all')">Все<b>${S.waits.length}</b></button>${WSTAT.map(s=>`<button class="chip ${S.wstat===s.id?'on':''}" onclick="setF('wstat','${s.id}')">${s.n}<b>${cnt[s.id]}</b></button>`).join('')}</div>`;
+  const wp = S.products.filter(p=>S.waits.some(w=>w.productId===p.id));
+  if(wp.length>1) h += `<div class="filters">${sel('wprod',[['all','Все'],...wp.map(p=>[p.id,p.name])],'Товар')}</div>`;
+  if(!S.waits.length) return h + emptyS('⏳','Пока никто не ждёт','Если покупатель спросил товар, которого нет, — запишите его здесь, чтобы написать, когда товар придёт.','＋ Добавить запрос','editWait()');
+  if(!list.length) return h + `<div class="empty-s">Нет запросов с таким фильтром</div>`;
+  // group by product
+  const groups = {};
+  for(const w of list){ const k=w.productId||('free:'+(w.want||'')); (groups[k]=groups[k]||[]).push(w); }
+  return h + Object.entries(groups).map(([k,ws])=>{
+    const p = pm[k]; const s = p ? stockOf(p) : null;
+    const ready = s && s.available>0;
+    return `<div class="wgroup ${ready?'ready':''}">
+      <div class="wg-h">${p&&photoOf(p)?`<img src="${esc(photoOf(p))}" alt="${esc(p.name)}" referrerpolicy="no-referrer" data-zoom>`:''}
+        <div><b>${esc(p?p.name:(ws[0].want||'Товар'))}</b>
+        <small>${p?(ready?`✅ свободно ${s.available} шт${s.onHand<s.available&&s.transit?` (в пути${p.eta?', будет '+fdate(p.eta):''})`:''} — можно написать`:`нет свободных${s.transit?` · 🚚 в пути${p.eta?', будет '+fdate(p.eta):''}`:''}`):'товара нет в складе'}</small></div>
+        <span class="wg-n">${ws.length}</span></div>
+      ${ws.sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))).map(w=>{ const chat=safeUrl(w.chat); const st=w.status||'wait';
+        return `<div class="wrow" data-edit="w:${w.id}">
+          <div class="wr-d">${fdate(w.date)}</div>
+          <div class="wr-b"><b>${esc(w.buyer||'—')}</b>${w.note?`<small>${esc(w.note)}</small>`:''}</div>
+          <div class="links">${w.phone?`<button class="lk ph" onclick="copy('${esc(w.phone)}','Телефон скопирован')">📞 ${esc(w.phone)}</button>`:''}${chat?`<a class="lk" href="${esc(chat)}" target="_blank" rel="noopener">💬 Чат</a>`:''}<button class="lk" onclick="openTemplates({wait:'${w.id}'})">📝 Шаблон</button></div>
+          <div class="wr-a">
+            <span class="wst ws-${st}">${WSTAT.find(x=>x.id===st)?.n||st}</span>
+            ${st==='wait'?`<button class="btn sm" ${ro()} onclick="setWait('${w.id}','notified')">✓ Написал</button>`:''}
+            ${p&&st!=='deal'?`<button class="btn sm pri" ${ro()} onclick="waitToDeal('${w.id}')">→ Сделка</button>`:''}
+          </div></div>`; }).join('')}
+    </div>`; }).join('');
+}
+function editWait(id, preset){
+  const w = id ? S.waits.find(x=>x.id===id) : null;
+  const b = w || {date:today(), status:'wait', ...(preset||{})};
+  openModal(`<div class="md-h"><h2>${w?'Запрос в ожидании':'Новый запрос'}</h2><button class="x" onclick="closeModal()">×</button></div>
+  <form class="md-b" onsubmit="event.preventDefault();saveWait('${id||''}')">
+    <div class="fl"><label>Какой товар хотел</label><select class="inp" id="w_prod"><option value="">— другой, нет в складе —</option>${S.products.slice().sort((a,c)=>String(a.name).localeCompare(String(c.name),'ru')).map(p=>`<option value="${p.id}" ${p.id===b.productId?'selected':''}>${esc(p.name)}${p.size?' · '+esc(p.size):''}</option>`).join('')}</select></div>
+    <div class="fl"><label>Если товара нет в списке — что хотел</label><input class="inp" id="w_want" value="${esc(b.want)}" placeholder="например, матрас 160×200 Askona Balance"></div>
+    <div class="fr"><div class="fl"><label>Имя</label><input class="inp" id="w_buyer" value="${esc(b.buyer)}" list="buyers_dl2"></div>
+      <div class="fl"><label>Телефон</label><input class="inp" id="w_phone" inputmode="tel" value="${esc(b.phone)}"></div></div>
+    <datalist id="buyers_dl2">${[...new Set(S.deals.map(x=>x.buyer).filter(Boolean))].map(n=>`<option value="${esc(n)}">`).join('')}</datalist>
+    <div class="fl"><label>Ссылка на чат в Авито</label><input class="inp" id="w_chat" value="${esc(b.chat)}" placeholder="https://www.avito.ru/profile/messenger/channel/..."></div>
+    <div class="fr"><div class="fl"><label>Дата запроса</label><input class="inp" type="date" id="w_date" value="${esc(b.date)}"></div>
+      <div class="fl"><label>Статус</label><select class="inp" id="w_status">${WSTAT.map(s=>`<option value="${s.id}" ${s.id===(b.status||'wait')?'selected':''}>${s.n}</option>`).join('')}</select></div></div>
+    <div class="fl"><label>Комментарий</label><textarea class="inp" id="w_note">${esc(b.note)}</textarea></div>
+    <div class="err" id="werr"></div></form>
+  <div class="md-f">${w&&!S.readonly?`<button class="btn danger ghost left" onclick="delWait('${id}')">Удалить</button>`:''}<button class="btn" onclick="closeModal()">Отмена</button><button class="btn pri" ${ro()} onclick="saveWait('${id||''}')">Сохранить</button></div>`);
+}
+async function saveWait(id){
+  const old = id ? S.waits.find(x=>x.id===id) : null;
+  const w = {...(old||{}), id:id||uid(), productId:val('w_prod'), want:val('w_want'), buyer:val('w_buyer'), phone:val('w_phone'), chat:val('w_chat'), date:val('w_date')||today(), status:val('w_status')||'wait', note:val('w_note'), updated:Date.now()};
+  if(!w.productId && !w.want){ $('#werr').textContent='Выберите товар или опишите, что хотел'; return; }
+  if(!old) w.created=Date.now();
+  closeModal(); try{ await writeDoc('w', w); toast(old?'Сохранено':'Добавлено в ожидание'); }catch(e){}
+}
+async function setWait(id, status){ const w=S.waits.find(x=>x.id===id); if(!w) return; try{ await writeDoc('w', {...w, status, updated:Date.now()}); toast('Отмечено: '+(WSTAT.find(x=>x.id===status)?.n||status)); }catch(e){} }
+function delWait(id){ confirmBox('Удалить запрос из листа ожидания?','Удалить', async()=>{ await removeDoc('w',id); toast('Удалено'); }); }
+function waitToDeal(id){
+  const w=S.waits.find(x=>x.id===id); if(!w) return;
+  S._fromWait = id;
+  editDeal(null, w.productId, {buyer:w.buyer, phone:w.phone, chat:w.chat, note:w.note});
+}
+function waitBadge(p){
+  const n = waitsFor(p.id).length; if(!n) return '';
+  const ready = stockOf(p).available>0;
+  return `<button class="wbadge ${ready?'ready':''}" onclick="S.wprod='${p.id}';S.wstat='wait';go('wait')" title="Лист ожидания">⏳ ждут ${n}${ready?' — написать':''}</button>`;
+}
+
+/* ---------- reply templates ---------- */
+const TPL_HELP = '{имя} {товар} {цена} {розница} {магазин} {дата_прихода} {трек} {остаток}';
+function tplCtx(o){
+  const d = o.deal ? S.deals.find(x=>x.id===o.deal) : null;
+  const w = o.wait ? S.waits.find(x=>x.id===o.wait) : null;
+  const pid = d?.productId || w?.productId || o.product;
+  const p = S.products.find(x=>x.id===pid);
+  const s = p ? stockOf(p) : null;
+  return { 'имя': (d?.buyer||w?.buyer||'').split(' ')[0], 'товар': p?.name || w?.want || '', 'цена': d ? rub(d.price) : (p ? rub(priceFor(p, d?.shopId)) : ''),
+    'розница': p&&num(p.retail) ? rub(p.retail) : '', 'магазин': shopOf(d?.shopId)?.name||'', 'дата_прихода': p?.eta ? fdate(p.eta) : 'в ближайшие дни',
+    'трек': d?.track || '', 'остаток': s ? String(s.available) : '', _chat: safeUrl(d?.chat || w?.chat) };
+}
+function fillTpl(text, ctx){ return String(text||'').replace(/\{([а-яё_]+)\}/gi, (m,k)=> ctx[k.toLowerCase()]!==undefined && ctx[k.toLowerCase()]!=='' ? ctx[k.toLowerCase()] : m)
+  .replace(/^(Здравствуйте), !/,'$1!').replace(/\s+,/g,','); }
+const tplsSorted = () => S.tpls.slice().sort((a,b)=>(a.order||0)-(b.order||0) || (a.created||0)-(b.created||0));
+function openTemplates(o){
+  o = o || {}; const ctx = tplCtx(o);
+  window._tctx = ctx; window._topts = o;
+  const ts = tplsSorted();
+  openModal(`<div class="md-h"><h2>Шаблоны ответов</h2><button class="x" onclick="closeModal()">×</button></div>
+  <div class="md-b">${ctx['товар']?`<p class="mut" style="margin:0 0 10px;font-size:13px">Подставлено: ${esc(ctx['имя']||'покупатель')} · ${esc(ctx['товар'])}${ctx['цена']?' · '+esc(ctx['цена']):''}</p>`:''}
+    ${ts.length ? ts.map((t,i)=>`<div class="tpl"><div class="tpl-h"><b>${esc(t.title||'Шаблон')}</b></div>
+      <div class="tpl-t" id="tpl_${i}">${esc(fillTpl(t.text, ctx))}</div>
+      <div class="tpl-a"><button class="btn sm pri" onclick="copyTpl(${i})">Копировать</button>${ctx._chat?`<button class="btn sm" onclick="copyTpl(${i},true)">Копировать и открыть чат</button>`:''}</div></div>`).join('')
+      : '<div class="empty-s" style="box-shadow:none">Шаблонов пока нет</div>'}
+  </div>
+  <div class="md-f"><button class="btn left" onclick="editTemplates()">✎ Редактировать шаблоны</button><button class="btn" onclick="closeModal()">Закрыть</button></div>`);
+}
+async function copyTpl(i, openChat){
+  const t = document.getElementById('tpl_'+i)?.textContent || '';
+  await copy(t, 'Текст скопирован — вставьте в чат');
+  if(openChat && window._tctx?._chat){ const a=document.createElement('a'); a.href=window._tctx._chat; a.target='_blank'; a.rel='noopener'; document.body.appendChild(a); a.click(); a.remove(); }
+}
+function editTemplates(){
+  const ts = tplsSorted();
+  openModal(`<div class="md-h"><h2>Редактировать шаблоны</h2><button class="x" onclick="closeModal()">×</button></div>
+  <div class="md-b"><p class="mut" style="font-size:12.5px;margin:0 0 10px">Подстановки: ${TPL_HELP}. Изменения сохраняются, когда вы уходите из поля.</p>
+    ${ts.map(t=>`<div class="tpl ed"><div class="tpl-h"><input class="inp" value="${esc(t.title)}" placeholder="Название" onchange="updTpl('${t.id}',{title:this.value})"><button class="btn sm ghost danger" onclick="delTpl('${t.id}')">Удалить</button></div>
+      <textarea class="inp" rows="3" onchange="updTpl('${t.id}',{text:this.value})">${esc(t.text)}</textarea></div>`).join('')}
+    <button class="btn" onclick="addTpl()">＋ Новый шаблон</button></div>
+  <div class="md-f"><button class="btn" onclick="openTemplates(window._topts)">← К шаблонам</button></div>`);
+}
+async function updTpl(id, patch){ const t=S.tpls.find(x=>x.id===id); if(!t) return; try{ await writeDoc('t', {...t, ...patch, updated:Date.now()}); toast('Шаблон сохранён'); }catch(e){} }
+async function addTpl(){ try{ await writeDoc('t', {id:uid(), title:'Новый шаблон', text:'Здравствуйте, {имя}! ', order:S.tpls.length+1, created:Date.now()}); editTemplates(); }catch(e){} }
+async function delTpl(id){ try{ await removeDoc('t', id); editTemplates(); }catch(e){} }
+
+/* ---------- expenses ---------- */
+const ECATS = ['Продвижение Авито','Упаковка','Поездки и доставка','Закупка мелочей','Прочее'];
+function editExp(id){
+  const e = id ? S.exps.find(x=>x.id===id) : null;
+  const b = e || {date:today(), cat:ECATS[0]};
+  openModal(`<div class="md-h"><h2>${e?'Расход':'Новый расход'}</h2><button class="x" onclick="closeModal()">×</button></div>
+  <form class="md-b" onsubmit="event.preventDefault();saveExp('${id||''}')">
+    <div class="fr"><div class="fl"><label>Сумма, ₽ *</label><input class="inp" id="e_amount" inputmode="decimal" value="${esc(b.amount||'')}" autofocus></div>
+      <div class="fl"><label>Дата</label><input class="inp" type="date" id="e_date" value="${esc(b.date)}"></div></div>
+    <div class="fr"><div class="fl"><label>Категория</label><select class="inp" id="e_cat">${ECATS.map(c=>`<option ${c===b.cat?'selected':''}>${c}</option>`).join('')}</select></div>
+      <div class="fl"><label>Магазин</label><select class="inp" id="e_shop"><option value="">— общий —</option>${shopsSorted().map(sh=>`<option value="${sh.id}" ${sh.id===b.shopId?'selected':''}>${esc(sh.name)}</option>`).join('')}</select></div></div>
+    <div class="fl"><label>Комментарий</label><input class="inp" id="e_note" value="${esc(b.note)}" placeholder="например, продвижение объявления Cosmo 2.0"></div>
+    <div class="err" id="eerr"></div></form>
+  <div class="md-f">${e&&!S.readonly?`<button class="btn danger ghost left" onclick="delExp('${id}')">Удалить</button>`:''}<button class="btn" onclick="closeModal()">Отмена</button><button class="btn pri" ${ro()} onclick="saveExp('${id||''}')">Сохранить</button></div>`,'sm');
+}
+async function saveExp(id){
+  const amount=num(val('e_amount')); if(!amount){ $('#eerr').textContent='Укажите сумму'; return; }
+  const old = id ? S.exps.find(x=>x.id===id) : null;
+  const e = {...(old||{}), id:id||uid(), amount, date:val('e_date')||today(), cat:val('e_cat'), shopId:val('e_shop'), note:val('e_note'), updated:Date.now()};
+  if(!old) e.created=Date.now();
+  closeModal(); try{ await writeDoc('e', e); toast(old?'Сохранено':'Расход добавлен'); }catch(err){}
+}
+function delExp(id){ confirmBox('Удалить расход?','Удалить', async()=>{ await removeDoc('e',id); toast('Удалено'); }); }
+
+/* ---------- summary ---------- */
+function sumPeriod(){
+  const t=new Date(); t.setHours(12,0,0,0); const td=ymd(t);
+  const back=n=>{ const x=new Date(t); x.setDate(x.getDate()-n); return ymd(x); };
+  switch(S.sper){
+    case 'month': return [td.slice(0,8)+'01', td, t.toLocaleDateString('ru-RU',{month:'long', year:'numeric'})];
+    case 'pmonth': { const x=new Date(t.getFullYear(), t.getMonth()-1, 1, 12); const e=new Date(t.getFullYear(), t.getMonth(), 0, 12); return [ymd(x), ymd(e), x.toLocaleDateString('ru-RU',{month:'long', year:'numeric'})]; }
+    case '7': return [back(6), td, 'последние 7 дней'];
+    case '30': return [back(29), td, 'последние 30 дней'];
+    default: return ['0000', '9999', 'всё время'];
+  }
+}
+const soldDate = d => d.soldAt || d.date || '';
 function vSummary(){
   const pm = Object.fromEntries(S.products.map(p=>[p.id,p]));
+  const [pf, pt, plabel] = sumPeriod(); const inP = x => x >= pf && x <= pt;
   let units=0, costVal=0, saleVal=0, whU=0, trU=0;
   const low=[];
   for(const p of S.products){ const s=stockOf(p); const left=s.available+s.reserved; units+=left; whU+=s.onHand; trU+=s.transit; costVal+=left*num(p.cost); saleVal+=left*num(p.price); if(p.status!=='off' && s.available<=1 && (s.received+s.transit)>0) low.push([p,s]); }
-  const sold = S.deals.filter(d=>d.status==='sold');
-  let rev=0, cost=0, soldUnits=0;
-  for(const d of sold){ const q=num(d.qty); rev+=q*num(d.price); cost+=q*num(d.cost ?? pm[d.productId]?.cost); soldUnits+=q; }
-  const fees = sold.reduce((a,d)=>a+dealFee(d),0);
-  const extra = sold.reduce((a,d)=>a+num(d.expense),0);
-  const profit = rev-cost-fees-extra;
+  const soldAll = S.deals.filter(d=>d.status==='sold');
+  const sold = soldAll.filter(d=>inP(soldDate(d)));
+  const rev = sold.reduce((a,d)=>a+dealSum(d),0), cost = sold.reduce((a,d)=>a+dealCost(d),0);
+  const fees = sold.reduce((a,d)=>a+dealFee(d),0), dex = sold.reduce((a,d)=>a+num(d.expense),0);
+  const exps = S.exps.filter(e=>inP(e.date||''));
+  const gex = exps.reduce((a,e)=>a+num(e.amount),0);
+  const profit = rev - cost - fees - dex - gex;
+  const soldUnits = sold.reduce((a,d)=>a+num(d.qty),0);
   const inWork = S.deals.filter(d=>ACTIVE.includes(d.status));
-  const pipe = inWork.reduce((a,d)=>a+num(d.qty)*num(d.price),0);
-  const closed = S.deals.filter(d=>d.status==='sold'||d.status==='cancel').length;
-  const conv = closed ? Math.round(sold.length/closed*100) : 0;
-
+  const pipe = inWork.reduce((a,d)=>a+dealSum(d),0);
+  const closedP = S.deals.filter(d=>(d.status==='sold'||d.status==='cancel') && inP(d.status==='sold'?soldDate(d):(d.date||'')));
+  const conv = closedP.length ? Math.round(sold.length/closedP.length*100) : 0;
   // weekly sales, last 9 weeks
   const weeks=[]; const now=new Date(); const mon=new Date(now); mon.setHours(0,0,0,0); mon.setDate(mon.getDate()-((mon.getDay()+6)%7));
   for(let i=8;i>=0;i--){ const s=new Date(mon); s.setDate(s.getDate()-i*7); const e=new Date(s); e.setDate(e.getDate()+7); weeks.push({s,e,v:0}); }
-  for(const d of sold){ if(!d.date) continue; const dt=new Date(d.date+'T12:00:00'); const w=weeks.find(w=>dt>=w.s&&dt<w.e); if(w) w.v+=num(d.qty)*num(d.price); }
+  for(const d of soldAll){ const sd=soldDate(d); if(!sd) continue; const dt=new Date(sd+'T12:00:00'); const w=weeks.find(w=>dt>=w.s&&dt<w.e); if(w) w.v+=dealSum(d); }
   const mx = Math.max(1,...weeks.map(w=>w.v));
   const kfmt = v => v>=1000 ? (Math.round(v/100)/10).toLocaleString('ru-RU')+'к' : String(Math.round(v));
-
-  // top products
-  const byP={}; for(const d of sold){ const k=d.productId; byP[k]=(byP[k]||0)+num(d.qty)*num(d.price); }
+  const byP={}; for(const d of sold){ byP[d.productId]=(byP[d.productId]||0)+dealSum(d); }
   const top = Object.entries(byP).sort((a,b)=>b[1]-a[1]).slice(0,6);
-
-  let h = `<div class="bar"><h1>Сводка</h1><button class="btn sm" onclick="exportCsv()">Скопировать сделки (CSV)</button></div>
+  const byCat={}; for(const e of exps){ byCat[e.cat||'Прочее']=(byCat[e.cat||'Прочее']||0)+num(e.amount); }
+  const line=(l,v,cls='')=>`<div class="rw ${cls}"><span>${l}</span><span>${v}</span></div>`;
+  return `<div class="bar"><h1>Сводка</h1><button class="btn" onclick="exportXlsx()">⬇ Скачать Excel</button><button class="btn pri" ${ro()} onclick="editExp()">＋ Расход</button></div>
+  <div class="filters">${sel('sper',[['month','Этот месяц'],['pmonth','Прошлый месяц'],['7','7 дней'],['30','30 дней'],['all','Всё время']],'Период')}<span class="mut" style="font-size:13px">${plabel}</span></div>
   <div class="kpis">
-    <div class="kpi hl"><small>Выручка</small><b>${rub(rev)}</b><span>${soldUnits} шт продано · ${sold.length} сделок</span></div>
-    <div class="kpi"><small>Чистая прибыль</small><b style="color:${profit<0?'var(--bad)':'var(--ok)'}">${rub(profit)}</b><span>${rev?`маржа ${Math.round(profit/rev*100)}%${fees?` · комиссия ${rub(fees)}`:''}`:'выручка − закупка − комиссия − расходы'}</span></div>
-    <div class="kpi"><small>В работе</small><b>${rub(pipe)}</b><span>${inWork.length} сделок · конверсия ${conv}%</span></div>
+    <div class="kpi hl"><small>Выручка</small><b>${rub(rev)}</b><span>${soldUnits} шт продано · ${sold.length} ${plural(sold.length,'сделка','сделки','сделок')}</span></div>
+    <div class="kpi"><small>Итоговая прибыль</small><b style="color:${profit<0?'var(--bad)':'var(--ok)'}">${rub(profit)}</b><span>${rev?`маржа ${Math.round(profit/rev*100)}% · после комиссий и расходов`:'выручка − закупка − комиссия − расходы'}</span></div>
+    <div class="kpi"><small>В работе</small><b>${rub(pipe)}</b><span>${inWork.length} ${plural(inWork.length,'сделка','сделки','сделок')} · конверсия ${conv}%</span></div>
     <div class="kpi"><small>Остаток</small><b>${units} шт</b><span>🏠 на складе ${whU} · 🚚 в пути ${trU}<br>закуп ${rub(costVal)} · продажа ${rub(saleVal)}</span></div>
   </div>
   <div class="panels">
+    <div class="panel"><h3>Прибыль за период</h3><div class="rows">
+      ${line('Выручка', rub(rev))}${line('− Закупка проданного', rub(cost))}${line('− Комиссия Авито', rub(fees))}${line('− Расходы по сделкам', rub(dex))}${line('− Общие расходы', rub(gex))}
+      ${line('<b>Итого</b>', `<b style="color:${profit<0?'var(--bad)':'var(--ok)'}">${rub(profit)}</b>`,'tot')}</div></div>
+    <div class="panel"><h3>Расходы <span class="mut" style="font-weight:600">· ${rub(gex)}</span></h3>
+      ${Object.keys(byCat).length?`<div class="ecats">${Object.entries(byCat).sort((a,b)=>b[1]-a[1]).map(([c,v])=>`<span>${esc(c)} <b>${rub(v)}</b></span>`).join('')}</div>`:''}
+      ${exps.length?`<div class="rows">${exps.sort((a,b)=>String(b.date).localeCompare(String(a.date))).slice(0,12).map(e=>`<div class="rw" data-edit="e:${e.id}"><span><span class="mut">${fdate(e.date)}</span> ${esc(e.cat)}${e.note?` <span class="mut">· ${esc(e.note)}</span>`:''}${e.shopId?' '+shopBadge(e.shopId):''}</span><span>${rub(e.amount)}</span></div>`).join('')}</div>`
+        :`<div class="mut" style="font-size:14px">Расходов за период нет. <a href="#" onclick="event.preventDefault();editExp()">Добавить</a></div>`}</div>
     <div class="panel"><h3>Продажи по неделям</h3>
-      <div class="bars">${weeks.map(w=>`<div class="col"><span class="v">${w.v?kfmt(w.v):''}</span><div class="b ${w.v?'':'empty'}" style="height:${Math.max(2,w.v/mx*120)}px"></div><span class="l">${String(w.s.getDate()).padStart(2,'0')}.${String(w.s.getMonth()+1).padStart(2,'0')}</span></div>`).join('')}</div>
-    </div>
+      <div class="bars">${weeks.map(w=>`<div class="col"><span class="v">${w.v?kfmt(w.v):''}</span><div class="b ${w.v?'':'empty'}" style="height:${Math.max(2,w.v/mx*120)}px"></div><span class="l">${String(w.s.getDate()).padStart(2,'0')}.${String(w.s.getMonth()+1).padStart(2,'0')}</span></div>`).join('')}</div></div>
     <div class="panel"><h3>Лидеры продаж</h3>
-      ${top.length?`<div class="rows">${top.map(([id,v])=>`<div class="rw"><span>${esc(pm[id]?.name||'Товар удалён')}</span><span>${rub(v)}</span></div>`).join('')}</div>`:'<div style="color:var(--ink3);font-size:14px">Пока нет продаж</div>'}
-    </div>
-    <div class="panel"><h3>Заканчиваются</h3>
-      ${low.length?`<div class="rows">${low.map(([p,s])=>`<div class="rw"><span>${esc(p.name)}${p.size?' · '+esc(p.size):''}</span><span class="${s.available<=0?'alert':''}">${s.available<=0?'нет в наличии':'осталась 1 шт'}</span></div>`).join('')}</div>`:'<div style="color:var(--ink3);font-size:14px">Всё в наличии</div>'}
-    </div>
+      ${top.length?`<div class="rows">${top.map(([id,v])=>line(esc(pm[id]?.name||'Товар удалён'), rub(v))).join('')}</div>`:'<div class="mut" style="font-size:14px">Продаж за период нет</div>'}</div>
     ${S.shops.length ? `<div class="panel"><h3>По магазинам</h3><div class="rows">${[...shopsSorted().map(sh=>sh.id), ...(S.deals.some(d=>!d.shopId||!shopOf(d.shopId))?['']:[])].map(id=>{
       const ds=S.deals.filter(d=> id ? d.shopId===id : (!d.shopId||!shopOf(d.shopId)));
-      const so=ds.filter(d=>d.status==='sold'); const r=so.reduce((a,d)=>a+num(d.qty)*num(d.price),0);
+      const so=ds.filter(d=>d.status==='sold' && inP(soldDate(d))); const r=so.reduce((a,d)=>a+dealSum(d),0); const pr=so.reduce((a,d)=>a+dealProfit(d),0);
       const w=ds.filter(d=>ACTIVE.includes(d.status)).length;
-      return `<div class="rw"><span>${id?shopBadge(id):'<span style="color:var(--ink3)">Без магазина</span>'} <span style="color:var(--ink3);font-size:12.5px">${so.reduce((a,d)=>a+num(d.qty),0)} шт · в работе ${w}</span></span><span>${rub(r)}</span></div>`; }).join('')}</div></div>` : ''}
+      return line(`${id?shopBadge(id):'<span class="mut">Без магазина</span>'} <span class="mut" style="font-size:12.5px">${so.reduce((a,d)=>a+num(d.qty),0)} шт · в работе ${w}${so.length?` · приб. ${rub(pr)}`:''}</span>`, rub(r)); }).join('')}</div></div>` : ''}
+    <div class="panel"><h3>Заканчиваются</h3>
+      ${low.length?`<div class="rows">${low.map(([p,s])=>line(`${esc(p.name)}${p.size?' · '+esc(p.size):''}`, `<span class="${s.available<=0?'alert':''}">${s.available<=0?'нет свободных':'осталась 1 шт'}</span>`)).join('')}</div>`:'<div class="mut" style="font-size:14px">Всё в наличии</div>'}</div>
     <div class="panel"><h3>Сделки по статусам</h3>
-      <div class="rows">${DSTAT.map(s=>{ const ds=S.deals.filter(d=>d.status===s.id); return `<div class="rw"><span><span class="st st-${s.id}" style="cursor:default">${s.n}</span></span><span>${ds.length} · ${rub(ds.reduce((a,d)=>a+num(d.qty)*num(d.price),0))}</span></div>`; }).join('')}</div>
-    </div>
+      <div class="rows">${DSTAT.map(s=>{ const ds=S.deals.filter(d=>d.status===s.id); return line(`<span class="st st-${s.id}" style="cursor:default">${s.n}</span>`, `${ds.length} · ${rub(ds.reduce((a,d)=>a+dealSum(d),0))}`); }).join('')}</div></div>
   </div>`;
-  return h;
 }
-function exportCsv(){
+
+/* ---------- Excel export ---------- */
+async function loadXlsx(){
+  if(window.XLSX) return window.XLSX;
+  await new Promise((res,rej)=>{ const s=document.createElement('script'); s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'; s.onload=res; s.onerror=rej; document.head.appendChild(s); });
+  return window.XLSX;
+}
+async function exportXlsx(){
+  let X; try{ toast('Готовлю файл…'); X = await loadXlsx(); }catch(e){ toast('Не удалось загрузить модуль Excel — проверьте интернет'); return; }
   const pm = Object.fromEntries(S.products.map(p=>[p.id,p]));
-  const q = v => '"'+String(v??'').replace(/"/g,'""')+'"';
-  const rows = [['Дата','Магазин','Товар','Размер','Кол-во','Цена','Сумма','Статус','Покупатель','Телефон','Чат','Доставка','Комментарий']];
-  for(const d of S.deals){ const p=pm[d.productId]; rows.push([d.date,shopOf(d.shopId)?.name||'',p?.name,p?.size,d.qty,d.price,num(d.qty)*num(d.price),dsn(d.status),d.buyer,d.phone,d.chat,d.delivery,d.note]); }
-  copy(rows.map(r=>r.map(q).join(';')).join('\n'), 'CSV скопирован — вставьте в Excel');
+  const prods = S.products.slice().sort((a,b)=>String(a.name).localeCompare(String(b.name),'ru')).map(p=>{ const s=stockOf(p); return {
+    'Товар':p.name, 'Категория':cat(p.cat).name, 'Размер':p.size||'', 'Цена продажи':num(p.price), 'Закупка':num(p.cost), 'Розница на сайте':num(p.retail)||'',
+    'На складе':s.onHand, 'В пути':s.transit, 'Дата прихода':p.eta?fdate(p.eta):'', 'Резерв':s.reserved, 'Продано':s.sold, 'Свободно':s.available,
+    'Остаток по закупке':(s.available+s.reserved)*num(p.cost), 'На Авито':isListed(p)?'да':'нет',
+    ...Object.fromEntries(shopsSorted().map(sh=>['Объявление: '+sh.name, safeUrl(listingOf(p,sh.id).url)||''])), 'Ссылка на сайт':safeUrl(p.refUrl)||'', 'Заметки':p.notes||'' }; });
+  const deals = S.deals.slice().sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))).map(d=>{ const p=pm[d.productId]; return {
+    'Дата':d.date?fdate(d.date):'', 'Магазин':shopOf(d.shopId)?.name||'', 'Товар':p?.name||'', 'Кол-во':num(d.qty), 'Цена':num(d.price), 'Сумма':dealSum(d),
+    'Закупка':dealCost(d), 'Комиссия Авито':dealFee(d), 'Доп. расходы':num(d.expense), 'Чистая прибыль':d.status==='cancel'?'':dealProfit(d),
+    'Статус':dsn(d.status), 'Срок':d.due?fdate(d.due):'', 'Трек':d.track||'', 'Покупатель':d.buyer||'', 'Телефон':d.phone||'', 'Чат':safeUrl(d.chat)||'', 'Доставка':d.delivery||'', 'Комментарий':d.note||'' }; });
+  const exps = S.exps.slice().sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))).map(e=>({'Дата':e.date?fdate(e.date):'', 'Сумма':num(e.amount), 'Категория':e.cat||'', 'Магазин':shopOf(e.shopId)?.name||'', 'Комментарий':e.note||''}));
+  const waits = S.waits.map(w=>({'Дата':w.date?fdate(w.date):'', 'Товар':pm[w.productId]?.name||w.want||'', 'Покупатель':w.buyer||'', 'Телефон':w.phone||'', 'Чат':safeUrl(w.chat)||'', 'Статус':WSTAT.find(s=>s.id===(w.status||'wait'))?.n||'', 'Комментарий':w.note||''}));
+  const wb = X.utils.book_new();
+  const add = (rows, name) => { const ws = X.utils.json_to_sheet(rows.length?rows:[{'—':'нет данных'}]); const keys=Object.keys(rows[0]||{'—':1}); ws['!cols']=keys.map(k=>({wch:Math.min(48, Math.max(k.length+2, ...rows.map(r=>String(r[k]??'').length+1)))})); X.utils.book_append_sheet(wb, ws, name); };
+  add(prods,'Товары'); add(deals,'Сделки'); add(exps,'Расходы'); add(waits,'Ожидание');
+  X.writeFile(wb, `sklad-avito-${today()}.xlsx`);
+  toast('Файл Excel скачан');
 }
 
 /* ---------- modal helpers ---------- */
@@ -1252,14 +1472,15 @@ async function doRestock(id){
 }
 
 /* ---------- deal editor ---------- */
-function editDeal(id, productId){
+function editDeal(id, productId, preset){
+  if(!preset) S._fromWait = null;
   const d = id ? S.deals.find(x=>x.id===id) : null;
   const isNew = !d;
   const pid = d ? d.productId : (productId || '');
   const prods = S.products.filter(p => p.status!=='off' || p.id===pid);
   const defShop = S.shop!=='all' ? S.shop : (shopsSorted()[0]||{}).id || '';
   const pp = pid ? S.products.find(p=>p.id===pid) : null;
-  const base = d || {status:'talk', qty:1, date:today(), productId: pid, shopId: defShop, price: pp ? priceFor(pp, defShop) : ''};
+  const base = d || {status:'talk', qty:1, date:today(), productId: pid, shopId: defShop, price: pp ? priceFor(pp, defShop) : '', ...(preset||{})};
   openModal(`<div class="md-h"><h2>${isNew?'Новая сделка':'Сделка'}</h2><button class="x" onclick="closeModal()">×</button></div>
   <form class="md-b" onsubmit="event.preventDefault();saveDeal('${id||''}')">
     <div class="fl"><label>Товар *</label><select class="inp" id="d_prod" onchange="dealProdChanged()">
@@ -1297,6 +1518,7 @@ function editDeal(id, productId){
     <div class="err" id="derr"></div>
   </form>
   <div class="md-f">${!isNew&&!S.readonly?`<button class="btn danger ghost left" onclick="delDeal('${id}')">Удалить</button>`:''}
+    ${!isNew?`<button class="btn" onclick="openTemplates({deal:'${id}'})">📝 Шаблоны</button>`:''}
     <button class="btn" onclick="closeModal()">Отмена</button>
     <button class="btn pri" ${ro()} onclick="saveDeal('${id||''}')">${isNew?'Создать':'Сохранить'}</button></div>`);
   feeAuto();
@@ -1345,15 +1567,17 @@ async function saveDeal(id){
     delivery:val('d_deliv'), buyer:val('d_buyer'), phone:val('d_phone'), chat:val('d_chat'), profile:val('d_profile'),
     expense:num(val('d_exp')), fee: val('d_fee')==='' ? '' : num(val('d_fee')), due:val('d_due'), track:val('d_track'), note:val('d_note'), updated:Date.now()};
   if(!old) d.created=Date.now();
-  if(status==='sold' && (!old || old.status!=='sold' || old.productId!==productId)) d.cost = num(p?.cost);
+  if(status==='sold' && (!old || old.status!=='sold' || old.productId!==productId)){ d.cost = num(p?.cost); d.soldAt = today(); }
+  const fromWait = !old && S._fromWait; S._fromWait = null;
   closeModal();
-  try{ await writeDoc('d', d); toast(old?'Сохранено':'Сделка создана'); if(status==='sent' && !d.track) toast('Отправлено — не забудьте трек-номер'); }catch(e){}
+  try{ await writeDoc('d', d); toast(old?'Сохранено':'Сделка создана'); if(status==='sent' && !d.track) toast('Отправлено — не забудьте трек-номер');
+    if(fromWait){ const w=S.waits.find(x=>x.id===fromWait); if(w) await writeDoc('w', {...w, status:'deal', dealId:d.id, updated:Date.now()}); } }catch(e){}
 }
 async function setDealStatus(id, status, el){
   const d = S.deals.find(x=>x.id===id); if(!d) return;
   if(!canTake(d.productId, num(d.qty), status, id)){ toast('Недостаточно свободного товара'); el.value=d.status; return; }
   const nd = {...d, status, updated:Date.now()};
-  if(status==='sold' && d.status!=='sold'){ nd.cost = num(S.products.find(p=>p.id===d.productId)?.cost); if(!d.date) nd.date=today(); }
+  if(status==='sold' && d.status!=='sold'){ nd.cost = num(S.products.find(p=>p.id===d.productId)?.cost); nd.soldAt = today(); if(!d.date) nd.date=today(); }
   try{ await writeDoc('d', nd); toast(status==='sold'?'Продано — остаток обновлён':'Статус: '+dsn(status));
     if(status==='sent' && !d.track){ editDeal(id); setTimeout(()=>{ const t=$('#d_track'); if(t){ t.focus(); t.scrollIntoView({block:'center'}); } },80); } }catch(e){ el.value=d.status; }
 }
@@ -1388,7 +1612,7 @@ document.addEventListener('click', e=>{
   if(window.getSelection && String(window.getSelection()).length) return;   // user is selecting text
   const el = e.target.closest('#main [data-edit]'); if(!el) return;
   const [k, id] = el.dataset.edit.split(/:(.+)/);
-  if(k==='p') editProduct(id); else if(k==='d') editDeal(id); else if(k==='b') openBuyer(+id);
+  if(k==='p') editProduct(id); else if(k==='d') editDeal(id); else if(k==='b') openBuyer(+id); else if(k==='w') editWait(id); else if(k==='e') editExp(id);
 });
 
 /* ---------- start ---------- */
