@@ -41,6 +41,27 @@ a{color:var(--accent)}
 .banner{margin:12px 28px 0;padding:10px 14px;border-radius:10px;background:var(--warnSoft);color:#7A4F0E;font-size:13.5px;display:none}
 .banner.show{display:block}
 main{margin:0 auto;padding:22px 28px 60px}
+@media(min-width:761px){
+  body{padding-left:248px}
+  .top{position:fixed;top:0;left:0;bottom:0;width:248px;padding-top:0;overflow-y:auto}
+  .top-in{flex-direction:column;align-items:stretch;gap:6px;height:100%;padding:22px 14px 16px !important}
+  .brand{padding:0 8px 22px;font-size:19px}
+  .brand .moon{width:36px;height:36px}
+  .tabs{flex-direction:column;margin:0;gap:4px}
+  .tab{padding:13px 14px;font-size:16.5px;font-weight:700;gap:12px;border-radius:12px;width:100%;text-align:left}
+  .tab .ti{display:flex;width:22px;height:22px;flex:none;opacity:.85}
+  .tab .ti svg{width:22px;height:22px}
+  .tab .tn{flex:1}
+  .tab .cnt{font-size:12.5px;padding:2px 9px}
+  .top .userbtn{margin:auto 0 0 !important;width:100%;height:auto;border-radius:12px;display:flex;align-items:center;gap:10px;padding:10px;text-align:left;background:rgba(255,255,255,.06)}
+  .top .userbtn:hover{background:var(--night2)}
+  .userbtn .ut{display:flex;flex-direction:column;min-width:0}
+  .userbtn .ut b{font-size:14px}
+  .userbtn .ut small{font-size:11.5px;color:#B9BEDA;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  main .bar h1{font-size:30px;letter-spacing:-.025em}
+}
+.userbtn .av{width:36px;height:36px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:800;flex:none;color:#fff}
+@media(max-width:760px){ .userbtn .ut{display:none} .userbtn{background:none !important;width:auto !important;height:auto !important;padding:0} }
 .bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
 .bar h1{font-size:22px;margin:0 auto 0 0;letter-spacing:-.02em}
 .search{flex:1 1 220px;max-width:340px;position:relative}
@@ -167,9 +188,10 @@ textarea.inp{min-height:70px;resize:vertical}
 @media(max-width:760px){
   .tabs{display:none}
   .bnav{display:flex;position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);z-index:30;padding:6px 6px calc(6px + env(safe-area-inset-bottom))}
-  .bnav button{flex:1;background:none;border:0;padding:6px 2px;font-size:11.5px;font-weight:700;color:var(--ink3);display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer}
+  .bnav button{flex:1;background:none;border:0;padding:7px 2px 5px;font-size:12.5px;font-weight:800;color:var(--ink3);display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer}
   .bnav button.on{color:var(--accent)}
-  .bnav svg{width:22px;height:22px}
+  .bnav svg{width:26px;height:26px}
+  .bnav button.on svg{stroke-width:2.4}
   main{padding:16px 14px 96px}
   .top-in{padding:12px 14px}
   .search{max-width:none}
@@ -286,6 +308,12 @@ a.shb{text-decoration:none}a.shb:hover{background:color-mix(in srgb,var(--c) 20%
   .dt-sum b{font-size:16px}
   .dt-b{flex-direction:row;flex-wrap:wrap;align-items:center;gap:6px}
 }
+.pc-img img[data-zoom],.pl-ico img[data-zoom],#pv img{cursor:zoom-in}
+.lb{position:fixed;inset:0;z-index:100;background:rgba(14,17,30,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:calc(20px + env(safe-area-inset-top)) 16px calc(20px + env(safe-area-inset-bottom));cursor:zoom-out;animation:lbin .15s ease-out}
+.lb-img{max-width:100%;max-height:calc(100% - 50px);object-fit:contain;border-radius:12px;background:#fff;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.lb-t{color:#fff;font-weight:700;margin-top:14px;text-align:center;font-size:15px;max-width:700px}
+.lb-x{position:absolute;top:calc(12px + env(safe-area-inset-top));right:14px;width:42px;height:42px;border-radius:50%;border:0;background:rgba(255,255,255,.15);color:#fff;font-size:26px;cursor:pointer;line-height:1}
+@keyframes lbin{from{opacity:0}to{opacity:1}}
 .ftot{font-size:13px;color:var(--ink3);margin:0 0 12px}
 .plist{background:#fff;border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden}
 .pl-h,.pl-r{display:grid;grid-template-columns:minmax(0,2.6fr) minmax(0,1.6fr) 110px 130px 80px 70px 70px 190px;gap:12px;align-items:center;padding:10px 16px}
@@ -402,7 +430,7 @@ button,a,select,label{-webkit-tap-highlight-color:transparent;touch-action:manip
 
 <script>
 /* ---------- constants ---------- */
-const APP_VERSION = '2.3';   // keep in sync with version.json
+const APP_VERSION = '2.5';   // keep in sync with version.json
 const APP_DATE = '21.11.2026';
 const CATS = [
   {id:'mattress', name:'Матрас', ico:'🛏️'},
@@ -522,7 +550,7 @@ async function init(){
 async function afterLogin(user){
   me = user; S.ready=false;
   document.querySelector('.top').style.display=''; $('#bnav').style.display='';
-  $('#userbtn').style.display=''; $('#userbtn').textContent=(user.email||'?')[0].toUpperCase();
+  $('#userbtn').style.display=''; $('#userbtn').innerHTML=`<span class="av">${esc((user.email||'?')[0].toUpperCase())}</span><span class="ut"><b>Аккаунт</b><small>${esc(user.email||'')}</small></span>`;
   if(loadCache(user.email)){ S.ready=true; }
   render();
   try{
@@ -636,7 +664,7 @@ const VIEWS = [['products','Товары'],['deals','Сделки'],['buyers','�
 function go(v){ S.view=v; if(v!=='deals') S.buyerFilter=null; try{ history.replaceState(null,'','#'+v);}catch(e){ location.hash=v; } render(); window.scrollTo(0,0); }
 function renderNav(){
   const cnt = {products:S.products.length, deals:S.deals.filter(d=>['new','talk','reserve','ship'].includes(d.status)).length};
-  $('#tabs').innerHTML = VIEWS.map(([k,n])=>`<button class="tab ${S.view===k?'on':''}" onclick="go('${k}')">${n}${cnt[k]?`<span class="cnt">${cnt[k]}</span>`:''}</button>`).join('');
+  $('#tabs').innerHTML = VIEWS.map(([k,n])=>`<button class="tab ${S.view===k?'on':''}" onclick="go('${k}')"><span class="ti">${ICONS[k]}</span><span class="tn">${n}</span>${cnt[k]?`<span class="cnt">${cnt[k]}</span>`:''}</button>`).join('');
   $('#bnav').innerHTML = VIEWS.map(([k,n])=>`<button class="${S.view===k?'on':''}" onclick="go('${k}')">${ICONS[k]}${n}</button>`).join('');
 }
 
@@ -720,7 +748,7 @@ function productList(list, st){
       const m = num(p.cost)&&num(p.price) ? Math.round((num(p.price)-num(p.cost))/num(p.cost)*100) : null;
       const ref = safeUrl(p.refUrl);
       return `<div class="pl-r ${p.status==='off'?'off':''} ${isListed(p)?'listed':'unlisted'}" data-edit="p:${p.id}">
-        <div class="pl-n"><span class="pl-ico">${photoOf(p)?`<img src="${esc(photoOf(p))}" alt="" loading="lazy" referrerpolicy="no-referrer">`:c.ico}</span><div><b>${esc(p.name||'Без названия')}</b>
+        <div class="pl-n"><span class="pl-ico">${photoOf(p)?`<img src="${esc(photoOf(p))}" alt="${esc(p.name)}" loading="lazy" referrerpolicy="no-referrer" data-zoom>`:c.ico}</span><div><b>${esc(p.name||'Без названия')}</b>
           <small>${avitoBadge(p)} ${[p.size].filter(Boolean).map(esc).join(' · ')}${ref?` · <a href="${esc(ref)}" target="_blank" rel="noopener">${esc(refHost(p.refUrl))} ↗</a>`:''}</small></div></div>
         <div class="pl-l">${shops.length?shops.map(sh=>{ const l=listingOf(p,sh.id), u=safeUrl(l.url); return u?`<a class="shb" style="--c:${esc(sh.color||SHOP_COLORS[0])}" href="${esc(u)}" target="_blank" rel="noopener">${esc(sh.name)}${num(l.price)&&num(l.price)!==num(p.price)?' · '+rub(l.price):''} ↗</a>`:`<span class="shb none">${esc(sh.name)} —</span>`; }).join(''):(safeUrl(p.url)?`<a class="shb" style="--c:var(--accent)" href="${esc(safeUrl(p.url))}" target="_blank" rel="noopener">Авито ↗</a>`:'')}</div>
         <div class="r pl-p"><b>${rub(p.price)}</b>${num(p.retail)?`<small><s>${rub(p.retail)}</s></small>`:''}</div>
@@ -736,7 +764,7 @@ function productCard(p){
   const s = stockOf(p), c = cat(p.cat), ps = PSTAT[p.status]||PSTAT.active;
   const url = safeUrl(p.url);
   return `<div class="pc ${p.status==='off'?'off':''} ${isListed(p)?'listed':'unlisted'}" data-edit="p:${p.id}">
-    <div class="pc-img">${photoOf(p)?`<img src="${esc(photoOf(p))}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">`:`<span class="ico">${c.ico}</span>`}
+    <div class="pc-img">${photoOf(p)?`<img src="${esc(photoOf(p))}" alt="${esc(p.name)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()" data-zoom>`:`<span class="ico">${c.ico}</span>`}
       <span class="pc-tag">${esc(c.name)}</span><span class="pc-st">${avitoBadge(p)}</span></div>
     <div class="pc-b">
       <div><div class="pc-name">${esc(p.name||'Без названия')}</div>
@@ -979,7 +1007,7 @@ function exportCsv(){
 /* ---------- modal helpers ---------- */
 function openModal(html, cls=''){ $('#modal').innerHTML = `<div class="ov" onmousedown="if(event.target===this)closeModal()"><div class="md ${cls}">${html}</div></div>`; document.body.style.overflow='hidden'; const f=$('#modal [autofocus]'); if(f) setTimeout(()=>f.focus(),30); }
 function closeModal(){ $('#modal').innerHTML=''; document.body.style.overflow=''; }
-document.addEventListener('keydown', e=>{ if(e.key==='Escape' && $('#modal').innerHTML) closeModal(); });
+document.addEventListener('keydown', e=>{ if(e.key!=='Escape') return; if(closeZoom()) return; if($('#modal').innerHTML) closeModal(); });
 function confirmBox(text, okText, fn){
   openModal(`<div class="md-h"><h2>Подтвердите</h2></div><div class="md-b"><p style="margin:4px 0 8px">${text}</p></div>
   <div class="md-f"><button class="btn" onclick="closeModal()">Отмена</button><button class="btn pri" style="background:var(--bad);border-color:var(--bad)" id="cfok">${okText}</button></div>`,'sm');
@@ -1206,8 +1234,25 @@ async function setDealStatus(id, status, el){
 }
 function delDeal(id){ confirmBox('Удалить сделку? Товар вернётся в свободный остаток.', 'Удалить', async()=>{ await removeDoc('d',id); toast('Сделка удалена'); }); }
 
+/* ---------- photo zoom ---------- */
+function bigPhoto(u){ return String(u||'').replace(/(ir\.askona\.ru\/i\/)[^/]+(\/catalog\/)/, '$1AUTOxAUTO_max$2'); }
+function zoomPhoto(src, title){
+  if(!src) return;
+  const big = bigPhoto(src);
+  const el = document.createElement('div'); el.className='lb'; el.id='lb';
+  el.innerHTML = `<button class="lb-x" aria-label="Закрыть">×</button>
+    <img class="lb-img" src="${esc(src)}" alt="" referrerpolicy="no-referrer">
+    ${title?`<div class="lb-t">${esc(title)}</div>`:''}`;
+  el.addEventListener('click', ()=>closeZoom());
+  document.body.appendChild(el);
+  if(big!==src){ const im=new Image(); im.referrerPolicy='no-referrer'; im.onload=()=>{ const t=el.querySelector('.lb-img'); if(t) t.src=big; }; im.src=big; }
+}
+function closeZoom(){ const el=$('#lb'); if(el){ el.remove(); return true; } return false; }
+
 /* ---------- tap a card to open it ---------- */
 document.addEventListener('click', e=>{
+  const zi = e.target.closest('img[data-zoom], #pv img');
+  if(zi){ e.preventDefault(); e.stopPropagation(); zoomPhoto(zi.getAttribute('src'), zi.alt || ''); return; }
   if(e.target.closest('a,button,select,input,textarea,label,.lk')) return;
   if(window.getSelection && String(window.getSelection()).length) return;   // user is selecting text
   const el = e.target.closest('#main [data-edit]'); if(!el) return;
