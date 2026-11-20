@@ -244,6 +244,17 @@ a.shb{text-decoration:none}a.shb:hover{background:color-mix(in srgb,var(--c) 20%
 .pc[data-edit]:hover,.dl[data-edit]:hover{box-shadow:0 2px 4px rgba(27,33,49,.06),0 8px 24px rgba(27,33,49,.09);border-color:#E2DFF5}
 .dl{border:1px solid transparent}
 .tbl tr[data-edit]:hover td{background:#FCFBF9}
+.whs{display:flex;gap:10px;flex-wrap:wrap;font-size:12.5px;color:var(--ink2);margin-bottom:-2px}
+.whs b{color:var(--ink)}
+.whs .tr{background:var(--blueSoft);color:var(--blue);padding:1px 8px;border-radius:20px;font-weight:600}
+.whs .tr b{color:var(--blue)}
+.trs{display:block;font-size:11px;color:var(--blue);font-weight:700;white-space:nowrap}
+.seg{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+.seg label{flex:1;min-width:110px;cursor:pointer}
+.seg input{display:none}
+.seg span{display:block;text-align:center;padding:10px 8px;border:1px solid var(--line);border-radius:10px;font-weight:700;font-size:13px;background:#fff}
+.seg input:checked+span{border-color:var(--accent);background:var(--accentSoft);color:var(--accent)}
+.seg label.dis{opacity:.4;cursor:not-allowed}
 .ftot{font-size:13px;color:var(--ink3);margin:0 0 12px}
 .plist{background:#fff;border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden}
 .pl-h,.pl-r{display:grid;grid-template-columns:minmax(0,2.6fr) minmax(0,1.6fr) 110px 130px 80px 70px 70px 190px;gap:12px;align-items:center;padding:10px 16px}
@@ -360,7 +371,7 @@ button,a,select,label{-webkit-tap-highlight-color:transparent;touch-action:manip
 
 <script>
 /* ---------- constants ---------- */
-const APP_VERSION = '2.0';   // keep in sync with version.json
+const APP_VERSION = '2.1';   // keep in sync with version.json
 const APP_DATE = '21.11.2026';
 const CATS = [
   {id:'mattress', name:'Матрас', ico:'🛏️'},
@@ -412,8 +423,9 @@ function stockOf(p){
   let sold=0, reserved=0;
   for(const d of S.deals){ if(d.productId!==p.id) continue;
     if(d.status==='sold') sold+=num(d.qty); else if(d.status==='reserve'||d.status==='ship') reserved+=num(d.qty); }
-  const received = num(p.received);
-  return {received, sold, reserved, available: received - sold - reserved};
+  const received = num(p.received), transit = num(p.transit);
+  // received = arrived at the warehouse (incl. already sold), transit = ordered, on the way
+  return {received, transit, sold, reserved, onHand: Math.max(0, received - sold), available: received + transit - sold - reserved};
 }
 
 /* ---------- storage layer: Supabase ---------- */
@@ -621,7 +633,7 @@ function vProducts(){
     .filter(p => S.pstat==='all' || (p.status||'active')===S.pstat)
     .filter(p => { const s=st[p.id]; switch(S.stockF){
         case 'avail': return s.available>0; case 'none': return s.available<=0;
-        case 'reserved': return s.reserved>0; case 'low': return s.available>0 && s.available<=2; default: return true; } })
+        case 'reserved': return s.reserved>0; case 'transit': return s.transit>0; case 'onhand': return s.onHand>0; case 'low': return s.available>0 && s.available<=2; default: return true; } })
     .filter(p => { const f=S.pshop; if(f==='all') return true; if(f==='any') return isListed(p); if(f==='none') return !isListed(p);
         const [m,id]=f.split(':'); return m==='in' ? listedIn(p,id) : !listedIn(p,id); })
     .filter(p => !q || [p.name,p.size,p.sku,p.notes,cat(p.cat).name].join(' ').toLowerCase().includes(q));
@@ -650,7 +662,7 @@ function vProducts(){
   const shopOpts = [['all','Все'], ...shops.flatMap(sh=>[['in:'+sh.id,'Выложен: '+sh.name],['out:'+sh.id,'Не выложен: '+sh.name]]), ['any','Выложен на Авито'], ['none','Не выложен нигде']];
   const anyF = S.stockF!=='all'||S.pstat!=='all'||S.pshop!=='all'||S.cat!=='all'||S.q;
   h += `<div class="filters">
-    ${sel('stockF',[['all','Все'],['avail','Есть свободные'],['low','Заканчиваются (≤2)'],['none','Нет свободных'],['reserved','Есть резерв']],'Наличие')}
+    ${sel('stockF',[['all','Все'],['avail','Есть свободные'],['low','Заканчиваются (≤2)'],['none','Нет свободных'],['reserved','Есть резерв'],['onhand','Есть на складе'],['transit','Есть в пути']],'Наличие')}
     ${sel('pshop',shopOpts,'Авито')}
     ${sel('pstat',[['all','Все'],['active','Активные'],['draft','На паузе'],['off','Сняты с продажи']],'Статус')}
     ${sel('psort',[['name:asc','Название А → Я'],['name:desc','Название Я → А'],['avail:desc','Свободных: больше'],['avail:asc','Свободных: меньше'],['reserved:desc','Резерв: больше'],['sold:desc','Продаж: больше'],['sold:asc','Продаж: меньше'],['price:desc','Цена: дороже'],['price:asc','Цена: дешевле'],['cost:desc','Закупка: дороже'],['cost:asc','Закупка: дешевле'],['markup:desc','Наценка: выше'],['markup:asc','Наценка: ниже'],['value:desc','Остаток в ₽: больше'],['fresh:desc','Сначала новые'],['fresh:asc','Сначала старые']],'Сортировка')}
@@ -659,8 +671,8 @@ function vProducts(){
   </div>`;
   if(!S.products.length) return h + emptyS('🛏️','Пока нет товаров','Добавьте первый товар: название, цену, количество и ссылку на объявление.','＋ Добавить товар','editProduct()');
   if(!list.length) return h + `<div class="empty-s">Ничего не найдено${anyF?' — попробуйте сбросить фильтры':''}</div>`;
-  const tot = list.reduce((a,p)=>{ const s=st[p.id]; a.u+=s.available; a.r+=s.reserved; a.c+=(s.available+s.reserved)*num(p.cost); a.v+=s.available*num(p.price); return a; },{u:0,r:0,c:0,v:0});
-  h += `<div class="ftot">${list.length} ${plural(list.length,'позиция','позиции','позиций')} · свободно ${tot.u} шт${tot.r?` · в резерве ${tot.r}`:''} · остаток по закупке ${rub(tot.c)} · свободное по цене продажи ${rub(tot.v)}</div>`;
+  const tot = list.reduce((a,p)=>{ const s=st[p.id]; a.u+=s.available; a.r+=s.reserved; a.w+=s.onHand; a.t+=s.transit; a.c+=(s.available+s.reserved)*num(p.cost); a.v+=s.available*num(p.price); return a; },{u:0,r:0,c:0,v:0,w:0,t:0});
+  h += `<div class="ftot">${list.length} ${plural(list.length,'позиция','позиции','позиций')} · свободно ${tot.u} шт${tot.r?` · в резерве ${tot.r}`:''} · 🏠 на складе ${tot.w} · 🚚 в пути ${tot.t} · остаток по закупке ${rub(tot.c)} · свободное по цене продажи ${rub(tot.v)}</div>`;
   return h + (S.pview==='list' ? productList(list, st) : `<div class="grid">${list.map(productCard).join('')}</div>`);
 }
 function sortHead(stateKey, key, label, cls='', defDir='desc'){
@@ -682,7 +694,7 @@ function productList(list, st){
         <div class="pl-l">${shops.length?shops.map(sh=>{ const l=listingOf(p,sh.id), u=safeUrl(l.url); return u?`<a class="shb" style="--c:${esc(sh.color||SHOP_COLORS[0])}" href="${esc(u)}" target="_blank" rel="noopener">${esc(sh.name)}${num(l.price)&&num(l.price)!==num(p.price)?' · '+rub(l.price):''} ↗</a>`:`<span class="shb none">${esc(sh.name)} —</span>`; }).join(''):(safeUrl(p.url)?`<a class="shb" style="--c:var(--accent)" href="${esc(safeUrl(p.url))}" target="_blank" rel="noopener">Авито ↗</a>`:'')}</div>
         <div class="r pl-p"><b>${rub(p.price)}</b>${num(p.retail)?`<small><s>${rub(p.retail)}</s></small>`:''}</div>
         <div class="r pl-c">${num(p.cost)?rub(p.cost):'—'}${m!==null?`<small class="mk">+${m}%</small>`:''}</div>
-        <div class="r pl-s"><b class="${s.available<=0?'alert':'okc'}">${s.available}</b><small class="m-only">своб.</small></div>
+        <div class="r pl-s"><b class="${s.available<=0?'alert':'okc'}">${s.available}</b><small class="m-only">своб.</small>${s.transit?`<small class="trs">🚚 ${s.transit} в пути</small>`:''}</div>
         <div class="r pl-s"><b style="color:var(--warn)">${s.reserved||'·'}</b><small class="m-only">рез.</small></div>
         <div class="r pl-s"><b>${s.sold||'·'}</b><small class="m-only">прод.</small></div>
         <div class="pl-a"><button class="btn sm" ${ro()} onclick="restock('${p.id}')" title="Приход">＋</button><button class="btn sm pri" ${ro()||(s.available<=0?'disabled':'')} onclick="editDeal(null,'${p.id}')">Сделка</button></div>
@@ -702,6 +714,7 @@ function productCard(p){
       ${num(p.retail)||safeUrl(p.refUrl)?`<div class="pc-ref">${num(p.retail)?`<span>розница <s>${rub(p.retail)}</s></span>`:''}${safeUrl(p.refUrl)?`<a href="${esc(safeUrl(p.refUrl))}" target="_blank" rel="noopener">${esc(refHost(p.refUrl))} ↗</a>`:''}</div>`:''}
       ${(()=>{ const st=priceStats(p); if(!st) return ''; return `<div class="pc-ref"><span>продано по ${st.min===st.max?rub(st.min):rub(st.min)+' – '+rub(st.max)}${st.n>1?` · ср. ${rub(st.avg)}`:''}</span></div>`; })()}
       ${cardListings(p, url)}
+      ${s.transit||s.received?`<div class="whs"><span>🏠 на складе <b>${s.onHand}</b></span>${s.transit?`<span class="tr">🚚 в пути <b>${s.transit}</b></span>`:''}</div>`:''}
       <div class="stock">
         <div class="av ${s.available<=0?'zero':''}"><small>Свободно</small><b>${s.available}</b></div>
         <div class="rs"><small>Резерв</small><b>${s.reserved}</b></div>
@@ -835,9 +848,9 @@ function vBuyers(){
 
 function vSummary(){
   const pm = Object.fromEntries(S.products.map(p=>[p.id,p]));
-  let units=0, costVal=0, saleVal=0;
+  let units=0, costVal=0, saleVal=0, whU=0, trU=0;
   const low=[];
-  for(const p of S.products){ const s=stockOf(p); const left=s.available+s.reserved; units+=left; costVal+=left*num(p.cost); saleVal+=left*num(p.price); if(p.status!=='off' && s.available<=1 && s.received>0) low.push([p,s]); }
+  for(const p of S.products){ const s=stockOf(p); const left=s.available+s.reserved; units+=left; whU+=s.onHand; trU+=s.transit; costVal+=left*num(p.cost); saleVal+=left*num(p.price); if(p.status!=='off' && s.available<=1 && (s.received+s.transit)>0) low.push([p,s]); }
   const sold = S.deals.filter(d=>d.status==='sold');
   let rev=0, cost=0, soldUnits=0;
   for(const d of sold){ const q=num(d.qty); rev+=q*num(d.price); cost+=q*num(d.cost ?? pm[d.productId]?.cost); soldUnits+=q; }
@@ -864,7 +877,7 @@ function vSummary(){
     <div class="kpi hl"><small>Выручка</small><b>${rub(rev)}</b><span>${soldUnits} шт продано · ${sold.length} сделок</span></div>
     <div class="kpi"><small>Прибыль</small><b style="color:${profit<0?'var(--bad)':'var(--ok)'}">${rub(profit)}</b><span>${rev?`маржа ${Math.round(profit/rev*100)}%`:'выручка − закупка − расходы'}</span></div>
     <div class="kpi"><small>В работе</small><b>${rub(pipe)}</b><span>${inWork.length} сделок · конверсия ${conv}%</span></div>
-    <div class="kpi"><small>На складе</small><b>${units} шт</b><span>закуп ${rub(costVal)} · продажа ${rub(saleVal)}</span></div>
+    <div class="kpi"><small>Остаток</small><b>${units} шт</b><span>🏠 на складе ${whU} · 🚚 в пути ${trU}<br>закуп ${rub(costVal)} · продажа ${rub(saleVal)}</span></div>
   </div>
   <div class="panels">
     <div class="panel"><h3>Продажи по неделям</h3>
@@ -932,12 +945,15 @@ function editProduct(id){
         <input class="inp" id="pl_price_${sh.id}" inputmode="decimal" value="${esc(l.price||'')}" placeholder="своя цена"></div>`; }).join('')}
       <span class="hint" style="font-size:12px;color:var(--ink3)">Остаток общий для всех магазинов. Своя цена — если в магазине она отличается от основной.</span>`
     : `<div class="fl"><label>Ссылка на объявление Авито</label><input class="inp" id="p_url" value="${esc(d.url)}" placeholder="https://www.avito.ru/ekaterinburg/..."><span class="hint">Несколько магазинов? Добавьте их в меню аккаунта (кнопка с буквой вверху).</span></div>`}
-    ${isNew ? `<div class="fr"><div class="fl"><label>Количество на складе, шт</label><input class="inp" id="p_received" inputmode="numeric" value="${esc(d.received)}"></div>
-      <div class="fl"><label>Артикул</label><input class="inp" id="p_sku" value="${esc(d.sku)}"></div></div>`
+    ${isNew ? `<div class="fr"><div class="fl"><label>🏠 На складе, шт</label><input class="inp" id="p_received" inputmode="numeric" value="${esc(d.received??0)}"></div>
+      <div class="fl"><label>🚚 В пути, шт</label><input class="inp" id="p_transit" inputmode="numeric" value="${esc(d.transit||0)}"></div></div>
+      <div class="fl"><label>Артикул</label><input class="inp" id="p_sku" value="${esc(d.sku)}"></div>`
     : `<div class="fl"><label>Артикул</label><input class="inp" id="p_sku" value="${esc(d.sku)}"></div>
       <div class="sec">Склад</div>
-      <div class="fr"><div class="fl"><label>Всего поступило, шт</label><input class="inp" id="p_received" inputmode="numeric" value="${esc(d.received)}"><span class="hint">Свободно ${s.available} · резерв ${s.reserved} · продано ${s.sold}</span></div>
-      <div class="fl"><label>История прихода</label><div class="hist">${(d.history||[]).length?(d.history||[]).slice().reverse().map(h=>`${fdate(h.date)} — ${h.qty>0?'+':''}${h.qty} шт${h.note?' · '+esc(h.note):''}`).join('<br>'):'—'}</div></div></div>`}
+      <div class="fr"><div class="fl"><label>🏠 Поступило на склад, шт</label><input class="inp" id="p_received" inputmode="numeric" value="${esc(d.received||0)}"><span class="hint">вместе с уже проданным</span></div>
+      <div class="fl"><label>🚚 В пути, шт</label><input class="inp" id="p_transit" inputmode="numeric" value="${esc(d.transit||0)}"></div></div>
+      <p class="hint" style="margin:-4px 0 10px;font-size:12px;color:var(--ink3)">Сейчас на складе ${s.onHand} · свободно ${s.available} · резерв ${s.reserved} · продано ${s.sold}</p>
+      <div class="fl"><label>История прихода</label><div class="hist">${(d.history||[]).length?(d.history||[]).slice().reverse().map(h=>`${fdate(h.date)} — ${h.qty>0?'+':''}${h.qty} шт${h.note?' · '+esc(h.note):''}`).join('<br>'):'—'}</div></div>`}
     <div class="fl"><label>Фото</label><div class="photo"><div class="pv" id="pv">${photoDraft?`<img src="${esc(photoDraft)}">`:cat(d.cat).ico}</div>
       <div style="display:flex;gap:6px;flex-wrap:wrap"><label class="btn sm" style="cursor:pointer">Загрузить<input type="file" accept="image/*" hidden onchange="pickPhoto(this)"></label>
       <button type="button" class="btn sm ghost" onclick="photoDraft='';$('#pv').textContent='📷'">Убрать</button></div></div></div>
@@ -974,13 +990,17 @@ async function saveProduct(id){
   if(!name){ $('#perr').textContent='Укажите название'; return; }
   const old = id ? S.products.find(x=>x.id===id) : null;
   const received = Math.max(0, Math.round(num(val('p_received'))));
-  if(old){ const s=stockOf(old); if(received < s.sold+s.reserved){ $('#perr').textContent=`Нельзя меньше ${s.sold+s.reserved} — столько уже продано и в резерве`; return; } }
+  const transit = Math.max(0, Math.round(num(val('p_transit'))));
+  if(old){ const s=stockOf(old); if(received+transit < s.sold+s.reserved){ $('#perr').textContent=`На складе + в пути не может быть меньше ${s.sold+s.reserved} — столько уже продано и в резерве`; return; } }
   const p = {...(old||{}), id: id||uid(), name, cat:val('p_cat'), size:val('p_size'), sku:val('p_sku'),
     price:num(val('p_price')), cost:num(val('p_cost')), status:val('p_status'), url: document.getElementById('p_url') ? val('p_url') : (old?.url||''),
     listings: collectListings(old),
-    retail:num(val('p_retail')), refUrl:val('p_ref'), notes:val('p_notes'), photo:photoDraft||'', received, updated:Date.now()};
-  if(!old){ p.created=Date.now(); p.history = received?[{date:today(), qty:received, note:'начальный остаток'}]:[]; }
-  else if(received !== num(old.received)){ p.history=[...(old.history||[]), {date:today(), qty:received-num(old.received), note:'корректировка'}].slice(-40); }
+    retail:num(val('p_retail')), refUrl:val('p_ref'), notes:val('p_notes'), photo:photoDraft||'', received, transit, updated:Date.now()};
+  if(!old){ p.created=Date.now(); p.history = [...(received?[{date:today(), qty:received, note:'🏠 начальный остаток'}]:[]), ...(transit?[{date:today(), qty:transit, note:'🚚 в пути'}]:[])]; }
+  else { const hs=[...(old.history||[])];
+    if(received !== num(old.received)) hs.push({date:today(), qty:received-num(old.received), note:'корректировка склада'});
+    if(transit !== num(old.transit)) hs.push({date:today(), qty:transit-num(old.transit), note:'корректировка «в пути»'});
+    p.history = hs.slice(-40); }
   closeModal();
   try{ await writeDoc('p', p); toast(old?'Сохранено':'Товар добавлен'); }catch(e){}
 }
@@ -990,19 +1010,43 @@ function delProduct(id){
 }
 function restock(id){
   const p = S.products.find(x=>x.id===id); if(!p) return;
+  const s = stockOf(p);
+  const def = s.transit>0 ? 'arrive' : 'order';
   openModal(`<div class="md-h"><h2>Приход товара</h2><button class="x" onclick="closeModal()">×</button></div>
-  <form class="md-b" onsubmit="event.preventDefault();doRestock('${id}')"><p style="margin:0 0 12px;color:var(--ink2)">${esc(p.name)}${p.size?' · '+esc(p.size):''}</p>
-    <div class="fr"><div class="fl"><label>Сколько пришло, шт</label><input class="inp" id="r_qty" inputmode="numeric" value="1" autofocus></div>
-    <div class="fl"><label>Закупка за шт, ₽</label><input class="inp" id="r_cost" inputmode="decimal" value="${esc(p.cost||'')}"></div></div>
-    <div class="fl"><label>Комментарий</label><input class="inp" id="r_note" placeholder="Поставка от …"></div><div class="err" id="rerr"></div></form>
-  <div class="md-f"><button class="btn" onclick="closeModal()">Отмена</button><button class="btn pri" onclick="doRestock('${id}')">Добавить на склад</button></div>`,'sm');
+  <form class="md-b" onsubmit="event.preventDefault();doRestock('${id}')"><p style="margin:0 0 6px;color:var(--ink2)">${esc(p.name)}${p.size?' · '+esc(p.size):''}</p>
+    <p style="margin:0 0 12px;font-size:13px;color:var(--ink3)">Сейчас: 🏠 на складе ${s.onHand} · 🚚 в пути ${s.transit} · свободно ${s.available}</p>
+    <div class="seg" id="r_mode">
+      <label><input type="radio" name="rm" value="order" ${def==='order'?'checked':''} onchange="rmode()"><span>🚚 Заказал, едет</span></label>
+      <label class="${s.transit?'':'dis'}"><input type="radio" name="rm" value="arrive" ${def==='arrive'?'checked':''} ${s.transit?'':'disabled'} onchange="rmode()"><span>📦 Пришло из пути</span></label>
+      <label><input type="radio" name="rm" value="direct" onchange="rmode()"><span>🏠 Сразу на склад</span></label>
+    </div>
+    <div class="fr"><div class="fl"><label id="r_qlabel">Сколько, шт</label><input class="inp" id="r_qty" inputmode="numeric" value="${def==='arrive'?s.transit:1}" autofocus></div>
+    <div class="fl" id="r_costwrap"><label>Закупка за шт, ₽</label><input class="inp" id="r_cost" inputmode="decimal" value="${esc(p.cost||'')}"></div></div>
+    <div class="fl"><label>Комментарий</label><input class="inp" id="r_note" placeholder="Поставка от …, трек-номер"></div><div class="err" id="rerr"></div></form>
+  <div class="md-f"><button class="btn" onclick="closeModal()">Отмена</button><button class="btn pri" id="r_btn" onclick="doRestock('${id}')">Сохранить</button></div>`,'sm');
+  rmode._transit = s.transit; rmode();
+}
+function rmode(){
+  const m = (document.querySelector('input[name=rm]:checked')||{}).value;
+  $('#r_qlabel').textContent = m==='arrive' ? `Сколько приехало, шт (едет ${rmode._transit})` : m==='order' ? 'Сколько заказал, шт' : 'Сколько пришло, шт';
+  $('#r_costwrap').style.display = m==='arrive' ? 'none' : '';
+  $('#r_btn').textContent = m==='arrive' ? 'Принять на склад' : m==='order' ? 'Добавить в путь' : 'Добавить на склад';
+  if(m==='arrive') $('#r_qty').value = rmode._transit; 
 }
 async function doRestock(id){
   const p = S.products.find(x=>x.id===id); const q = Math.round(num(val('r_qty')));
+  const m = (document.querySelector('input[name=rm]:checked')||{}).value || 'direct';
   if(!q || q<1){ $('#rerr').textContent='Укажите количество'; return; }
-  const np = {...p, received:num(p.received)+q, cost: val('r_cost')?num(val('r_cost')):p.cost, updated:Date.now(),
-    history:[...(p.history||[]), {date:today(), qty:q, note:val('r_note')}].slice(-40)};
-  closeModal(); try{ await writeDoc('p', np); toast(`+${q} шт на складе`); }catch(e){}
+  const tr = num(p.transit);
+  if(m==='arrive' && q>tr){ $('#rerr').textContent=`В пути только ${tr} шт`; return; }
+  const np = {...p, updated:Date.now()};
+  if(m!=='arrive' && val('r_cost')) np.cost = num(val('r_cost'));
+  let msg, note = val('r_note');
+  if(m==='order'){ np.transit = tr+q; msg=`+${q} шт в пути`; note = '🚚 заказано'+(note?': '+note:''); }
+  else if(m==='arrive'){ np.transit = tr-q; np.received = num(p.received)+q; msg=`${q} шт приняты на склад`; note = '📦 пришло из пути'+(note?': '+note:''); }
+  else { np.received = num(p.received)+q; msg=`+${q} шт на складе`; note = '🏠 на склад'+(note?': '+note:''); }
+  np.history = [...(p.history||[]), {date:today(), qty:q, note}].slice(-40);
+  closeModal(); try{ await writeDoc('p', np); toast(msg); }catch(e){}
 }
 
 /* ---------- deal editor ---------- */
@@ -1018,7 +1062,7 @@ function editDeal(id, productId){
   <form class="md-b" onsubmit="event.preventDefault();saveDeal('${id||''}')">
     <div class="fl"><label>Товар *</label><select class="inp" id="d_prod" onchange="dealProdChanged()">
       <option value="">— выберите —</option>
-      ${prods.map(p=>{ const s=stockOf(p); return `<option value="${p.id}" ${p.id===base.productId?'selected':''}>${esc(p.name)}${p.size?' · '+esc(p.size):''} — свободно ${s.available}</option>`; }).join('')}
+      ${prods.map(p=>{ const s=stockOf(p); return `<option value="${p.id}" ${p.id===base.productId?'selected':''}>${esc(p.name)}${p.size?' · '+esc(p.size):''} — свободно ${s.available}${s.transit?` (в пути ${s.transit})`:''}</option>`; }).join('')}
       ${d && !S.products.find(p=>p.id===d.productId) ? '<option value="'+esc(d.productId)+'" selected>Товар удалён</option>':''}
     </select></div>
     ${S.shops.length ? `<div class="fl"><label>Магазин</label><select class="inp" id="d_shop" onchange="dealProdChanged()">${shopsSorted().map(sh=>`<option value="${sh.id}" ${sh.id===base.shopId?'selected':''}>${esc(sh.name)}</option>`).join('')}${d && d.shopId && !shopOf(d.shopId)?'<option value="'+esc(d.shopId)+'" selected>Магазин удалён</option>':''}${d && !d.shopId?'<option value="" selected>— не указан —</option>':''}</select></div>` : ''}
