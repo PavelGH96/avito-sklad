@@ -71,7 +71,19 @@ textarea.inp{min-height:70px;resize:vertical}
 .pc-img img{width:100%;height:100%;object-fit:cover}
 .pc-img .ico{font-size:44px;opacity:.85}
 .pc-tag{position:absolute;top:10px;left:10px;background:rgba(255,255,255,.92);font-size:11.5px;font-weight:700;padding:3px 8px;border-radius:20px;color:var(--ink2)}
-.pc-st{position:absolute;top:10px;right:10px;font-size:11.5px;font-weight:700;padding:3px 8px;border-radius:20px}
+.pc-st{position:absolute;top:10px;right:10px}
+.ab{display:inline-block;font-size:11.5px;font-weight:800;padding:3px 9px;border-radius:20px;white-space:nowrap;line-height:1.4}
+.ab.on{background:var(--ok);color:#fff}
+.ab.no{background:var(--moonSoft);color:#9A6A08;border:1px dashed #E2B755}
+.ab.pause{background:var(--blueSoft);color:var(--blue)}
+.ab.off{background:#EEEDEA;color:var(--ink3)}
+.pl-n small .ab{font-size:10.5px;padding:1px 7px;margin-right:2px}
+.pc.listed{border-color:#BFE3CD}
+.pc.listed .pc-img{background:linear-gradient(135deg,#E3F3EA,#F3F8EE)}
+.pc.unlisted .pc-img .ico{opacity:.45;filter:grayscale(.6)}
+.pl-r.listed{box-shadow:inset 3px 0 0 var(--ok)}
+.chip.ch-on.on{background:var(--ok);border-color:var(--ok)}
+.chip.ch-no.on{background:#B7791F;border-color:#B7791F}
 .pc-b{padding:13px 14px 14px;display:flex;flex-direction:column;gap:9px;flex:1}
 .pc-name{font-weight:700;font-size:15.5px;line-height:1.3}
 .pc-meta{font-size:12.5px;color:var(--ink3);margin-top:2px}
@@ -302,7 +314,8 @@ button,a,select,label{-webkit-tap-highlight-color:transparent;touch-action:manip
   .pc-img{aspect-ratio:auto;width:104px;flex:none}
   .pc-img .ico{font-size:34px}
   .pc-tag{display:none}
-  .pc-st{top:auto;bottom:8px;left:8px;right:8px;text-align:center;font-size:10.5px;padding:2px 4px}
+  .pc-st{top:auto;bottom:8px;left:6px;right:6px;text-align:center}
+  .pc-st .ab{font-size:10.5px;padding:2px 6px}
   .pc-b{padding:11px 12px;gap:7px}
   .pc-price b{font-size:17px}
   .stock div{padding:4px 6px}.stock b{font-size:15px}
@@ -347,7 +360,7 @@ button,a,select,label{-webkit-tap-highlight-color:transparent;touch-action:manip
 
 <script>
 /* ---------- constants ---------- */
-const APP_VERSION = '1.9';   // keep in sync with version.json
+const APP_VERSION = '2.0';   // keep in sync with version.json
 const APP_DATE = '21.11.2026';
 const CATS = [
   {id:'mattress', name:'Матрас', ico:'🛏️'},
@@ -359,7 +372,7 @@ const CATS = [
   {id:'bed', name:'Кровать / основание', ico:'🪵'},
   {id:'other', name:'Другое', ico:'📦'},
 ];
-const PSTAT = {active:{n:'В продаже',c:'st-sold'}, draft:{n:'Не выложен',c:'st-new'}, off:{n:'Снят',c:'st-cancel'}};
+const PSTAT = {active:{n:'Активен',c:'st-sold'}, draft:{n:'Пауза',c:'st-new'}, off:{n:'Снят с продажи',c:'st-cancel'}};
 const DSTAT = [
   {id:'new', n:'Новый'}, {id:'talk', n:'Переговоры'}, {id:'reserve', n:'Резерв'}, {id:'ship', n:'Ждёт отправки'},
   {id:'sold', n:'Продано'}, {id:'cancel', n:'Отмена'}
@@ -609,7 +622,7 @@ function vProducts(){
     .filter(p => { const s=st[p.id]; switch(S.stockF){
         case 'avail': return s.available>0; case 'none': return s.available<=0;
         case 'reserved': return s.reserved>0; case 'low': return s.available>0 && s.available<=2; default: return true; } })
-    .filter(p => { const f=S.pshop; if(f==='all') return true; if(f==='none') return !shops.some(sh=>listedIn(p,sh.id));
+    .filter(p => { const f=S.pshop; if(f==='all') return true; if(f==='any') return isListed(p); if(f==='none') return !isListed(p);
         const [m,id]=f.split(':'); return m==='in' ? listedIn(p,id) : !listedIn(p,id); })
     .filter(p => !q || [p.name,p.size,p.sku,p.notes,cat(p.cat).name].join(' ').toLowerCase().includes(q));
   const mk = p => num(p.cost) ? (num(p.price)-num(p.cost))/num(p.cost) : -1;
@@ -631,13 +644,15 @@ function vProducts(){
   list.sort((a,b)=> (a.status==='off')-(b.status==='off') || dir*cmp(a,b) || byName(a,b));
   const usedCats = CATS.filter(c=>S.products.some(p=>p.cat===c.id));
   let h = `<div class="bar"><h1>Товары</h1>${searchBox('Поиск: название, размер, артикул')}<button class="btn pri" ${ro()} onclick="editProduct()">＋ Товар</button></div>`;
+  { const base=S.products.filter(p=>p.status!=='off'); const nOn=base.filter(isListed).length;
+    h += `<div class="chips"><button class="chip ${S.pshop==='all'?'on':''}" onclick="setF('pshop','all')">Все<b>${S.products.length}</b></button><button class="chip ch-on ${S.pshop==='any'?'on':''}" onclick="setF('pshop','any')">✓ На Авито<b>${nOn}</b></button><button class="chip ch-no ${S.pshop==='none'?'on':''}" onclick="setF('pshop','none')">Не выложены<b>${base.length-nOn}</b></button></div>`; }
   if(usedCats.length>1) h += `<div class="chips"><button class="chip ${S.cat==='all'?'on':''}" onclick="S.cat='all';render()">Все<b>${S.products.length}</b></button>${usedCats.map(c=>`<button class="chip ${S.cat===c.id?'on':''}" onclick="S.cat='${c.id}';render()">${c.ico} ${c.name}<b>${S.products.filter(p=>p.cat===c.id).length}</b></button>`).join('')}</div>`;
-  const shopOpts = [['all','Все'], ...shops.flatMap(sh=>[['in:'+sh.id,'Выложен: '+sh.name],['out:'+sh.id,'Не выложен: '+sh.name]]), ...(shops.length?[['none','Нигде не выложен']]:[])];
+  const shopOpts = [['all','Все'], ...shops.flatMap(sh=>[['in:'+sh.id,'Выложен: '+sh.name],['out:'+sh.id,'Не выложен: '+sh.name]]), ['any','Выложен на Авито'], ['none','Не выложен нигде']];
   const anyF = S.stockF!=='all'||S.pstat!=='all'||S.pshop!=='all'||S.cat!=='all'||S.q;
   h += `<div class="filters">
     ${sel('stockF',[['all','Все'],['avail','Есть свободные'],['low','Заканчиваются (≤2)'],['none','Нет свободных'],['reserved','Есть резерв']],'Наличие')}
-    ${shops.length?sel('pshop',shopOpts,'Магазин'):''}
-    ${sel('pstat',[['all','Все'],['active','В продаже'],['draft','Не выложен'],['off','Снят']],'Статус')}
+    ${sel('pshop',shopOpts,'Авито')}
+    ${sel('pstat',[['all','Все'],['active','Активные'],['draft','На паузе'],['off','Сняты с продажи']],'Статус')}
     ${sel('psort',[['name:asc','Название А → Я'],['name:desc','Название Я → А'],['avail:desc','Свободных: больше'],['avail:asc','Свободных: меньше'],['reserved:desc','Резерв: больше'],['sold:desc','Продаж: больше'],['sold:asc','Продаж: меньше'],['price:desc','Цена: дороже'],['price:asc','Цена: дешевле'],['cost:desc','Закупка: дороже'],['cost:asc','Закупка: дешевле'],['markup:desc','Наценка: выше'],['markup:asc','Наценка: ниже'],['value:desc','Остаток в ₽: больше'],['fresh:desc','Сначала новые'],['fresh:asc','Сначала старые']],'Сортировка')}
     ${anyF?`<button class="btn sm ghost" onclick="S.stockF='all';S.pstat='all';S.pshop='all';S.cat='all';S.q='';render()">Сбросить</button>`:''}
     <div class="vtog"><button class="${S.pview==='grid'?'on':''}" onclick="setF('pview','grid')" title="Плитка"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="8" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/><rect x="13" y="13" width="8" height="8" rx="2"/></svg></button><button class="${S.pview==='list'?'on':''}" onclick="setF('pview','list')" title="Список"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="4" width="18" height="4" rx="1.5"/><rect x="3" y="10" width="18" height="4" rx="1.5"/><rect x="3" y="16" width="18" height="4" rx="1.5"/></svg></button></div>
@@ -661,9 +676,9 @@ function productList(list, st){
     ${list.map(p=>{ const s=st[p.id], c=cat(p.cat), ps=PSTAT[p.status]||PSTAT.active;
       const m = num(p.cost)&&num(p.price) ? Math.round((num(p.price)-num(p.cost))/num(p.cost)*100) : null;
       const ref = safeUrl(p.refUrl);
-      return `<div class="pl-r ${p.status==='off'?'off':''}" data-edit="p:${p.id}">
+      return `<div class="pl-r ${p.status==='off'?'off':''} ${isListed(p)?'listed':'unlisted'}" data-edit="p:${p.id}">
         <div class="pl-n"><span class="pl-ico">${p.photo?`<img src="${esc(p.photo)}" alt="">`:c.ico}</span><div><b>${esc(p.name||'Без названия')}</b>
-          <small>${[p.size, p.status!=='active'?ps.n:''].filter(Boolean).map(esc).join(' · ')}${ref?` · <a href="${esc(ref)}" target="_blank" rel="noopener">${esc(refHost(p.refUrl))} ↗</a>`:''}</small></div></div>
+          <small>${avitoBadge(p)} ${[p.size].filter(Boolean).map(esc).join(' · ')}${ref?` · <a href="${esc(ref)}" target="_blank" rel="noopener">${esc(refHost(p.refUrl))} ↗</a>`:''}</small></div></div>
         <div class="pl-l">${shops.length?shops.map(sh=>{ const l=listingOf(p,sh.id), u=safeUrl(l.url); return u?`<a class="shb" style="--c:${esc(sh.color||SHOP_COLORS[0])}" href="${esc(u)}" target="_blank" rel="noopener">${esc(sh.name)}${num(l.price)&&num(l.price)!==num(p.price)?' · '+rub(l.price):''} ↗</a>`:`<span class="shb none">${esc(sh.name)} —</span>`; }).join(''):(safeUrl(p.url)?`<a class="shb" style="--c:var(--accent)" href="${esc(safeUrl(p.url))}" target="_blank" rel="noopener">Авито ↗</a>`:'')}</div>
         <div class="r pl-p"><b>${rub(p.price)}</b>${num(p.retail)?`<small><s>${rub(p.retail)}</s></small>`:''}</div>
         <div class="r pl-c">${num(p.cost)?rub(p.cost):'—'}${m!==null?`<small class="mk">+${m}%</small>`:''}</div>
@@ -677,9 +692,9 @@ function productList(list, st){
 function productCard(p){
   const s = stockOf(p), c = cat(p.cat), ps = PSTAT[p.status]||PSTAT.active;
   const url = safeUrl(p.url);
-  return `<div class="pc ${p.status==='off'?'off':''}" data-edit="p:${p.id}">
+  return `<div class="pc ${p.status==='off'?'off':''} ${isListed(p)?'listed':'unlisted'}" data-edit="p:${p.id}">
     <div class="pc-img">${p.photo?`<img src="${esc(p.photo)}" alt="">`:`<span class="ico">${c.ico}</span>`}
-      <span class="pc-tag">${esc(c.name)}</span><span class="pc-st ${ps.c}">${ps.n}</span></div>
+      <span class="pc-tag">${esc(c.name)}</span><span class="pc-st">${avitoBadge(p)}</span></div>
     <div class="pc-b">
       <div><div class="pc-name">${esc(p.name||'Без названия')}</div>
       <div class="pc-meta">${[p.size, p.sku?('арт. '+p.sku):''].filter(Boolean).map(esc).join(' · ')||'&nbsp;'}</div></div>
@@ -708,6 +723,13 @@ function priceStats(p){
 function diffTag(price, base){
   const df=num(price)-num(base); if(!num(base)||!num(price)||Math.abs(df)<1) return '';
   return `<span class="df ${df<0?'dn':'up'}" title="Отличие от обычной цены ${rub(base)}">${df<0?'−':'+'}${rub(Math.abs(df))}</span>`;
+}
+function listedShops(p){ return shopsSorted().filter(sh=>safeUrl(listingOf(p,sh.id).url)); }
+function isListed(p){ return listedShops(p).length>0 || (!S.shops.length && !!safeUrl(p.url)); }
+function avitoBadge(p){
+  if(p.status==='off') return `<span class="ab off">Снят</span>`;
+  if(p.status==='draft') return `<span class="ab pause">Пауза</span>`;
+  return isListed(p) ? `<span class="ab on">✓ На Авито</span>` : `<span class="ab no">Не выложен</span>`;
 }
 function refHost(u){ try{ return new URL(safeUrl(u)).hostname.replace(/^www\./,''); }catch(e){ return 'сайт'; } }
 function cardListings(p, legacyUrl){

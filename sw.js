@@ -1,5 +1,5 @@
 // App shell cache: the page opens offline; data always goes to Supabase.
-const C = 'avito-sklad-v10';
+const C = 'avito-sklad-v11';
 const SHELL = ['./', './index.html', './manifest.json', './icon.svg', './icon-192.png'];
 self.addEventListener('message', e => { if (e.data === 'skipWaiting') self.skipWaiting(); });
 self.addEventListener('install', e => { e.waitUntil(caches.open(C).then(c => c.addAll(SHELL.map(u => new Request(u, {cache: 'reload'})))).then(() => self.skipWaiting())); });
