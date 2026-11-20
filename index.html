@@ -205,6 +205,9 @@ textarea.inp{min-height:70px;resize:vertical}
 .shb::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--c)}
 a.shb{text-decoration:none}a.shb:hover{background:color-mix(in srgb,var(--c) 20%,#fff)}
 a.shb.none{--c:#9096A6;opacity:.7}
+.pc-ref{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:12.5px;color:var(--ink3);margin-top:-4px}
+.pc-ref a{font-weight:700;text-decoration:none}
+.mk{color:var(--ok);font-weight:700}
 .listings{display:flex;gap:5px;flex-wrap:wrap}
 .lst{display:grid;grid-template-columns:minmax(0,1fr) 120px;gap:8px;align-items:center;margin-bottom:8px}
 .lst .nm{grid-column:1/-1;margin-bottom:-2px}
@@ -531,7 +534,7 @@ function vProducts(){
   const list = S.products
     .filter(p => S.cat==='all' || p.cat===S.cat)
     .filter(p => S.shop==='all' || safeUrl(listingOf(p,S.shop).url))
-    .filter(p => !q || [p.name,p.size,p.sku,p.notes].join(' ').toLowerCase().includes(q))
+    .filter(p => !q || [p.name,p.size,p.sku,p.notes,cat(p.cat).name].join(' ').toLowerCase().includes(q))
     .sort((a,b)=> (a.status==='off')-(b.status==='off') || String(a.name).localeCompare(String(b.name),'ru'));
   const usedCats = CATS.filter(c=>S.products.some(p=>p.cat===c.id));
   let h = `<div class="bar"><h1>Товары</h1>${searchBox('Поиск: название, размер, артикул')}<button class="btn pri" ${ro()} onclick="editProduct()">＋ Товар</button></div>`;
@@ -550,7 +553,8 @@ function productCard(p){
     <div class="pc-b">
       <div><div class="pc-name">${esc(p.name||'Без названия')}</div>
       <div class="pc-meta">${[p.size, p.sku?('арт. '+p.sku):''].filter(Boolean).map(esc).join(' · ')||'&nbsp;'}</div></div>
-      <div class="pc-price"><b>${rub(p.price)}</b>${num(p.cost)?`<span>закуп ${rub(p.cost)}</span>`:''}</div>
+      <div class="pc-price"><b>${rub(p.price)}</b>${num(p.cost)?`<span>закуп ${rub(p.cost)}${num(p.price)?` · <span class="mk">+${Math.round((num(p.price)-num(p.cost))/num(p.cost)*100)}%</span>`:''}</span>`:''}</div>
+      ${num(p.retail)||safeUrl(p.refUrl)?`<div class="pc-ref">${num(p.retail)?`<span>розница <s>${rub(p.retail)}</s></span>`:''}${safeUrl(p.refUrl)?`<a href="${esc(safeUrl(p.refUrl))}" target="_blank" rel="noopener">${esc(refHost(p.refUrl))} ↗</a>`:''}</div>`:''}
       ${cardListings(p, url)}
       <div class="stock">
         <div class="av ${s.available<=0?'zero':''}"><small>Свободно</small><b>${s.available}</b></div>
@@ -564,6 +568,7 @@ function productCard(p){
       </div>
     </div></div>`;
 }
+function refHost(u){ try{ return new URL(safeUrl(u)).hostname.replace(/^www\./,''); }catch(e){ return 'сайт'; } }
 function cardListings(p, legacyUrl){
   const shops = shopsSorted();
   if(!shops.length) return legacyUrl ? `<div class="listings"><a class="shb" style="--c:var(--accent)" href="${esc(legacyUrl)}" target="_blank" rel="noopener">Авито ↗</a></div>` : '';
@@ -759,6 +764,8 @@ function editProduct(id){
     <div class="fl"><label>Фото</label><div class="photo"><div class="pv" id="pv">${photoDraft?`<img src="${esc(photoDraft)}">`:cat(d.cat).ico}</div>
       <div style="display:flex;gap:6px;flex-wrap:wrap"><label class="btn sm" style="cursor:pointer">Загрузить<input type="file" accept="image/*" hidden onchange="pickPhoto(this)"></label>
       <button type="button" class="btn sm ghost" onclick="photoDraft='';$('#pv').textContent='📷'">Убрать</button></div></div></div>
+    <div class="fr"><div class="fl"><label>Розница на сайте, ₽</label><input class="inp" id="p_retail" inputmode="decimal" value="${esc(d.retail||'')}" placeholder="24 199"></div>
+      <div class="fl"><label>Ссылка на товар (сайт)</label><input class="inp" id="p_ref" value="${esc(d.refUrl)}" placeholder="https://www.askona.ru/..."></div></div>
     <div class="fl"><label>Заметки</label><textarea class="inp" id="p_notes" placeholder="Состояние, комплектация, где лежит…">${esc(d.notes)}</textarea></div>
     <div class="err" id="perr"></div>
   </form>
@@ -794,7 +801,7 @@ async function saveProduct(id){
   const p = {...(old||{}), id: id||uid(), name, cat:val('p_cat'), size:val('p_size'), sku:val('p_sku'),
     price:num(val('p_price')), cost:num(val('p_cost')), status:val('p_status'), url: document.getElementById('p_url') ? val('p_url') : (old?.url||''),
     listings: collectListings(old),
-    notes:val('p_notes'), photo:photoDraft||'', received, updated:Date.now()};
+    retail:num(val('p_retail')), refUrl:val('p_ref'), notes:val('p_notes'), photo:photoDraft||'', received, updated:Date.now()};
   if(!old){ p.created=Date.now(); p.history = received?[{date:today(), qty:received, note:'начальный остаток'}]:[]; }
   else if(received !== num(old.received)){ p.history=[...(old.history||[]), {date:today(), qty:received-num(old.received), note:'корректировка'}].slice(-40); }
   closeModal();
