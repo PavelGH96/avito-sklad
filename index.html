@@ -255,6 +255,37 @@ a.shb{text-decoration:none}a.shb:hover{background:color-mix(in srgb,var(--c) 20%
 .seg span{display:block;text-align:center;padding:10px 8px;border:1px solid var(--line);border-radius:10px;font-weight:700;font-size:13px;background:#fff}
 .seg input:checked+span{border-color:var(--accent);background:var(--accentSoft);color:var(--accent)}
 .seg label.dis{opacity:.4;cursor:not-allowed}
+.drange{display:inline-flex;gap:6px;align-items:center;font-size:13px;color:var(--ink3)}
+.drange input{border:1px solid var(--line);border-radius:10px;padding:7px 8px;background:#fff;font:inherit;font-size:13px}
+.dtab{background:#fff;border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden}
+.dt-h,.dt-r{display:grid;grid-template-columns:72px minmax(0,2.2fr) 120px minmax(0,1.7fr) 60px 120px 100px minmax(0,1fr) 150px;gap:12px;align-items:center;padding:10px 16px}
+.dt-h{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink3);font-weight:700;background:#FBFAF8;border-bottom:1px solid var(--line)}
+.dt-h .sh.r{justify-content:flex-end}
+.dt-r{border-bottom:1px solid #F0EEE9;font-size:14px}
+.dt-r:last-child{border-bottom:0}
+.dt-r:hover{background:#FCFBF9}
+.dt-r .r{text-align:right}
+.dt-d{font-weight:700;color:var(--ink2);font-size:13px}
+.dt-p b{font-weight:700}
+.dt-p small{display:block;font-size:12px;color:var(--ink3);margin-top:2px;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.mut{color:var(--ink3);font-weight:500}
+.dt-b{display:flex;flex-direction:column;gap:4px;min-width:0}
+.dt-b .nm{font-weight:600}
+.dt-pr{white-space:nowrap}
+.dt-pr .df{display:block;width:max-content;margin:2px 0 0 auto}
+.dt-dl{font-size:12.5px;color:var(--ink2)}
+.dt-st .st{width:100%}
+@media(max-width:1180px){ .dt-h,.dt-r{grid-template-columns:64px minmax(0,2fr) 110px minmax(0,1.6fr) 50px 110px 95px 0 140px} .dt-dl,.dt-h>.sh:nth-child(8){display:none} }
+@media(max-width:860px){
+  .dt-h{display:none}
+  .dt-r{grid-template-columns:auto 1fr auto;grid-template-areas:"d s sum" "p p p" "b b b" "q pr st";gap:6px 10px;padding:12px 14px}
+  .dt-d{grid-area:d}.dt-s{grid-area:s}.dt-sum{grid-area:sum}.dt-p{grid-area:p}.dt-b{grid-area:b}.dt-q{grid-area:q;text-align:left !important;color:var(--ink3)}
+  .dt-pr{grid-area:pr;text-align:left !important;display:flex;gap:6px;align-items:center}.dt-pr .df{margin:0}
+  .dt-st{grid-area:st}.dt-st .st{width:auto}
+  .dt-dl{display:none}
+  .dt-sum b{font-size:16px}
+  .dt-b{flex-direction:row;flex-wrap:wrap;align-items:center;gap:6px}
+}
 .ftot{font-size:13px;color:var(--ink3);margin:0 0 12px}
 .plist{background:#fff;border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden}
 .pl-h,.pl-r{display:grid;grid-template-columns:minmax(0,2.6fr) minmax(0,1.6fr) 110px 130px 80px 70px 70px 190px;gap:12px;align-items:center;padding:10px 16px}
@@ -371,7 +402,7 @@ button,a,select,label{-webkit-tap-highlight-color:transparent;touch-action:manip
 
 <script>
 /* ---------- constants ---------- */
-const APP_VERSION = '2.1';   // keep in sync with version.json
+const APP_VERSION = '2.2';   // keep in sync with version.json
 const APP_DATE = '21.11.2026';
 const CATS = [
   {id:'mattress', name:'Матрас', ico:'🛏️'},
@@ -392,7 +423,7 @@ const DELIV = ['Самовывоз','Авито Доставка','Курьер 
 
 /* ---------- state ---------- */
 const LSV=(k,d)=>{ try{ return localStorage.getItem(k)||d; }catch(e){ return d; } };
-const S = {pview:LSV('sklad-pview','grid'), stockF:'all', pstat:'all', pshop:'all', psort:'name:asc', bsort:'last:desc', dprod:'all', ddeliv:'all', dsort:'new', products:[], deals:[], shops:[], shop:'all', view:'products', q:'', cat:'all', dstat:'all', buyerFilter:null, ready:false, readonly:false};
+const S = {pview:LSV('sklad-pview','grid'), stockF:'all', pstat:'all', pshop:'all', psort:'name:asc', bsort:'last:desc', dprod:'all', ddeliv:'all', dsort:'date:desc', dper:'all', dfrom:'', dto:'', products:[], deals:[], shops:[], shop:'all', view:'products', q:'', cat:'all', dstat:'all', buyerFilter:null, ready:false, readonly:false};
 
 /* ---------- utils ---------- */
 const $ = s => document.querySelector(s);
@@ -772,9 +803,23 @@ function vDeals(){
   if(q) list = list.filter(d=>[d.buyer,d.phone,d.note,pm[d.productId]?.name].join(' ').toLowerCase().includes(q));
   if(S.dprod!=='all') list = list.filter(d=>d.productId===S.dprod);
   if(S.ddeliv!=='all') list = list.filter(d=> S.ddeliv==='none' ? !d.delivery : d.delivery===S.ddeliv);
-  const newest=(a,b)=> String(b.date||'').localeCompare(String(a.date||'')) || (b.created||0)-(a.created||0);
+  const [pf, pt] = periodRange();
+  if(pf) list = list.filter(d=> (d.date||'') >= pf && (d.date||'') <= pt);
   const sum=d=>num(d.qty)*num(d.price);
-  list.sort({new:newest, old:(a,b)=>-newest(a,b), sum_d:(a,b)=>sum(b)-sum(a), sum_a:(a,b)=>sum(a)-sum(b), buyer:(a,b)=>String(a.buyer||'').localeCompare(String(b.buyer||''),'ru')}[S.dsort]||newest);
+  const str=(x,y)=>String(x||'').localeCompare(String(y||''),'ru');
+  const dcmp = {
+    date:(a,b)=> str(a.date,b.date) || (a.created||0)-(b.created||0),
+    product:(a,b)=> str(pm[a.productId]?.name, pm[b.productId]?.name),
+    shop:(a,b)=> str(shopOf(a.shopId)?.name, shopOf(b.shopId)?.name),
+    buyer:(a,b)=> str(a.buyer,b.buyer),
+    qty:(a,b)=> num(a.qty)-num(b.qty),
+    price:(a,b)=> num(a.price)-num(b.price),
+    sum:(a,b)=> sum(a)-sum(b),
+    deliv:(a,b)=> str(a.delivery,b.delivery),
+    status:(a,b)=> DSTAT.findIndex(s=>s.id===a.status)-DSTAT.findIndex(s=>s.id===b.status),
+  };
+  { const [k,dd]=String(S.dsort).split(':'); const dr=dd==='asc'?1:-1; const c=dcmp[k]||dcmp.date;
+    list.sort((a,b)=> dr*c(a,b) || (b.created||0)-(a.created||0)); }
   let h = `<div class="bar"><h1>Сделки</h1>${searchBox('Поиск: покупатель, телефон, товар')}<button class="btn pri" ${ro()||(S.products.length?'':'disabled')} onclick="editDeal()">＋ Сделка</button></div>`;
   if(S.buyerFilter){ const d0 = S.deals.find(d=>buyerKey(d)===S.buyerFilter); h += `<div class="chips"><button class="chip on" onclick="S.buyerFilter=null;render()">Покупатель: ${esc(d0?.buyer||d0?.phone||'—')} ✕</button></div>`; }
   h += shopChips(id => shopBase.filter(d=>d.shopId===id).length, shopBase.length, 'Все магазины');
@@ -783,35 +828,57 @@ function vDeals(){
     <button class="chip ${S.dstat==='active'?'on':''}" onclick="S.dstat='active';render()">В работе<b>${active}</b></button>
     ${DSTAT.map(s=>`<button class="chip ${S.dstat===s.id?'on':''}" onclick="S.dstat='${s.id}';render()">${s.n}<b>${counts[s.id]}</b></button>`).join('')}</div>`;
   const dProds = S.products.filter(p=>S.deals.some(d=>d.productId===p.id)).sort((a,b)=>String(a.name).localeCompare(String(b.name),'ru'));
-  const anyDF = S.dprod!=='all'||S.ddeliv!=='all'||S.dstat!=='all'||S.shop!=='all'||S.q;
+  const anyDF = S.dprod!=='all'||S.ddeliv!=='all'||S.dstat!=='all'||S.shop!=='all'||S.dper!=='all'||S.q;
   if(S.deals.length) h += `<div class="filters">
+    ${sel('dper',[['all','За всё время'],['today','Сегодня'],['yest','Вчера'],['7','Последние 7 дней'],['30','Последние 30 дней'],['month','Этот месяц'],['pmonth','Прошлый месяц'],['custom','Свой период…']],'Дата')}
+    ${S.dper==='custom'?`<span class="drange"><input type="date" value="${esc(S.dfrom)}" onchange="S.dfrom=this.value;render()"> — <input type="date" value="${esc(S.dto)}" onchange="S.dto=this.value;render()"></span>`:''}
     ${sel('dprod',[['all','Все'],...dProds.map(p=>[p.id,p.name+(p.size?' · '+p.size:'')])],'Товар')}
     ${sel('ddeliv',[['all','Все'],...DELIV.map(x=>[x,x]),['none','Не указана']],'Доставка')}
-    ${sel('dsort',[['new','Сначала новые'],['old','Сначала старые'],['sum_d','Сумма ↓'],['sum_a','Сумма ↑'],['buyer','По покупателю']],'Сортировка')}
-    ${anyDF?`<button class="btn sm ghost" onclick="S.dprod='all';S.ddeliv='all';S.dstat='all';S.shop='all';S.q='';render()">Сбросить</button>`:''}
+    ${sel('dsort',[['date:desc','Дата: новые'],['date:asc','Дата: старые'],['sum:desc','Сумма: больше'],['sum:asc','Сумма: меньше'],['price:desc','Цена: дороже'],['price:asc','Цена: дешевле'],['product:asc','Товар А → Я'],['buyer:asc','Покупатель А → Я'],['shop:asc','Магазин'],['status:asc','Статус'],['deliv:asc','Доставка'],['qty:desc','Кол-во: больше']],'Сортировка')}
+    ${anyDF?`<button class="btn sm ghost" onclick="S.dprod='all';S.ddeliv='all';S.dstat='all';S.shop='all';S.dper='all';S.q='';render()">Сбросить</button>`:''}
   </div>`;
   if(list.length) h += `<div class="ftot">${list.length} ${plural(list.length,'сделка','сделки','сделок')} на ${rub(list.reduce((a,d)=>a+num(d.qty)*num(d.price),0))}</div>`;
   if(!S.products.length) return h + emptyS('📦','Сначала добавьте товар','Сделка всегда привязана к товару на складе — так остатки считаются сами.','Перейти к товарам',"go('products')");
   if(!S.deals.length) return h + emptyS('💬','Сделок пока нет','Когда покупатель напишет на Авито — заведите сделку, добавьте его телефон и ссылку на чат.','＋ Новая сделка','editDeal()');
   if(!list.length) return h + `<div class="empty-s">Нет сделок с таким фильтром</div>`;
-  return h + `<div class="list">${list.map(d=>dealRow(d,pm[d.productId])).join('')}</div>`;
+  return h + `<div class="dtab">
+    <div class="dt-h">${sortHead('dsort','date','Дата')}${sortHead('dsort','product','Товар','','asc')}${sortHead('dsort','shop','Магазин','','asc')}${sortHead('dsort','buyer','Покупатель','','asc')}${sortHead('dsort','qty','Кол-во','r')}${sortHead('dsort','price','Цена','r')}${sortHead('dsort','sum','Сумма','r')}${sortHead('dsort','deliv','Доставка','','asc')}${sortHead('dsort','status','Статус','','asc')}</div>
+    ${list.map(d=>dealRow(d,pm[d.productId])).join('')}</div>`;
+}
+function ymd(dt){ return dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0'); }
+function periodRange(){
+  const t=new Date(); t.setHours(12,0,0,0); const td=ymd(t);
+  const back=n=>{ const x=new Date(t); x.setDate(x.getDate()-n); return ymd(x); };
+  switch(S.dper){
+    case 'today': return [td,td];
+    case 'yest': return [back(1),back(1)];
+    case '7': return [back(6),td];
+    case '30': return [back(29),td];
+    case 'month': return [td.slice(0,8)+'01', td];
+    case 'pmonth': { const x=new Date(t.getFullYear(), t.getMonth()-1, 1, 12); const e=new Date(t.getFullYear(), t.getMonth(), 0, 12); return [ymd(x), ymd(e)]; }
+    case 'custom': return (S.dfrom||S.dto) ? [S.dfrom||'0000-00-00', S.dto||'9999-99-99'] : [null,null];
+    default: return [null,null];
+  }
 }
 function dealRow(d,p){
   const chat = safeUrl(d.chat), prof = safeUrl(d.profile);
   const sum = num(d.qty)*num(d.price);
-  return `<div class="dl" data-edit="d:${d.id}">
-    <div><div class="dl-t">${esc(p?p.name:'Товар удалён')}${p&&p.size?` <span style="font-weight:500;color:var(--ink3)">· ${esc(p.size)}</span>`:''}</div>
-      <div class="dl-s">${d.shopId?shopBadge(d.shopId)+' ':''}${fdate(d.date)} · ${num(d.qty)} шт × ${rub(d.price)} ${p?diffTag(d.price, priceFor(p,d.shopId)):''}${d.delivery?' · '+esc(d.delivery):''}</div>
-      ${d.note?`<div class="dl-s" style="color:var(--ink2)">${esc(d.note)}</div>`:''}</div>
-    <div class="buyer"><span class="nm">${esc(d.buyer||'Покупатель')}</span>
+  return `<div class="dt-r" data-edit="d:${d.id}">
+    <div class="dt-d">${fdate(d.date)||'—'}</div>
+    <div class="dt-p"><b>${esc(p?p.name:'Товар удалён')}</b>${p&&p.size?` <span class="mut">· ${esc(p.size)}</span>`:''}
+      ${d.note?`<small>${esc(d.note)}</small>`:''}</div>
+    <div class="dt-s">${d.shopId?shopBadge(d.shopId):'<span class="mut">—</span>'}</div>
+    <div class="dt-b"><span class="nm">${esc(d.buyer||'—')}</span>
       <div class="links">
         ${d.phone?`<button class="lk ph" onclick="copyPhone('${d.id}')" title="Скопировать">📞 ${esc(d.phone)}</button>`:''}
         ${chat?`<a class="lk" href="${esc(chat)}" target="_blank" rel="noopener">💬 Чат</a>`:''}
-        ${prof?`<a class="lk" href="${esc(prof)}" target="_blank" rel="noopener">👤 Профиль</a>`:''}
+        ${prof?`<a class="lk" href="${esc(prof)}" target="_blank" rel="noopener">👤</a>`:''}
       </div></div>
-    <div class="dl-r"><span class="dl-sum">${rub(sum)}</span>
-      <div style="display:flex;gap:6px;align-items:center">
-        <select class="st st-${d.status}" ${ro()} onchange="setDealStatus('${d.id}',this.value,this)">${DSTAT.map(s=>`<option value="${s.id}" ${s.id===d.status?'selected':''}>${s.n}</option>`).join('')}</select></div></div>
+    <div class="dt-q r">${num(d.qty)}<span class="m-only"> шт ×</span></div>
+    <div class="dt-pr r">${rub(d.price)}${p?diffTag(d.price, priceFor(p,d.shopId)):''}</div>
+    <div class="dt-sum r"><b>${rub(sum)}</b></div>
+    <div class="dt-dl">${d.delivery?esc(d.delivery):'<span class="mut">—</span>'}</div>
+    <div class="dt-st"><select class="st st-${d.status}" ${ro()} onchange="setDealStatus('${d.id}',this.value,this)">${DSTAT.map(s=>`<option value="${s.id}" ${s.id===d.status?'selected':''}>${s.n}</option>`).join('')}</select></div>
   </div>`;
 }
 function copyPhone(id){ const d=S.deals.find(x=>x.id===id); if(d) copy(d.phone,'Телефон скопирован'); }
